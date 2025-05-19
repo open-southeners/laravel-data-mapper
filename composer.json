@@ -43,7 +43,10 @@
     "autoload": {
         "psr-4": {
             "OpenSoutheners\\LaravelDto\\": "src"
-        }
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

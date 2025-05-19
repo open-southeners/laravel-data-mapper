@@ -5,7 +5,6 @@ namespace OpenSoutheners\LaravelDto;
 use Exception;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Collection;
@@ -14,40 +13,8 @@ use OpenSoutheners\LaravelDto\Attributes\BindModel;
 use OpenSoutheners\LaravelDto\Attributes\WithDefaultValue;
 use Symfony\Component\PropertyInfo\Type;
 
-abstract class DataTransferObject implements Arrayable
+abstract class SerializableObject implements Arrayable
 {
-    /**
-     * Initialise data transfer object from a request.
-     */
-    public static function fromRequest(Request|FormRequest $request)
-    {
-        app()->bind('dto.context.booted', fn () => static::class);
-
-        return static::fromArray(
-            array_merge(
-                is_object($request->route()) ? $request->route()->parameters() : [],
-                $request instanceof FormRequest
-                    ? $request->validated()
-                    : $request->all(),
-            )
-        );
-    }
-
-    /**
-     * Initialise data transfer object from array.
-     */
-    public static function fromArray(...$args): static
-    {
-        $propertiesMapper = new PropertiesMapper(array_merge(...$args), static::class);
-
-        $propertiesMapper->run();
-
-        return tap(
-            new static(...$propertiesMapper->get()),
-            fn (self $instance) => $instance->initialise()
-        );
-    }
-
     /**
      * Check if the following property is filled.
      */
@@ -70,8 +37,6 @@ abstract class DataTransferObject implements Arrayable
             return $requestHasProperty;
         }
 
-        $propertyInfoExtractor = PropertiesMapper::propertyInfoExtractor();
-
         $reflection = new \ReflectionClass($this);
 
         $classProperty = match (true) {
@@ -80,7 +45,7 @@ abstract class DataTransferObject implements Arrayable
             default => throw new Exception("Properties '{$property}' or '{$camelProperty}' doesn't exists on class instance."),
         };
 
-        $classPropertyTypes = $propertyInfoExtractor->getTypes(get_class($this), $classProperty);
+        [$classPropertyTypes] = ObjectMapper::getPropertiesInfoFrom(get_class($this), $classProperty);
 
         $reflectionProperty = $reflection->getProperty($classProperty);
         $propertyValue = $reflectionProperty->getValue($this);
@@ -111,45 +76,7 @@ abstract class DataTransferObject implements Arrayable
 
         return true;
     }
-
-    /**
-     * Initialise data transfer object (defaults, etc).
-     */
-    public function initialise(): static
-    {
-        $this->withDefaults();
-
-        return $this;
-    }
-
-    /**
-     * Add default data to data transfer object.
-     *
-     * @codeCoverageIgnore
-     */
-    public function withDefaults(): void
-    {
-        //
-    }
-
-    /**
-     * Call dump on this data transfer object then return itself.
-     */
-    public function dump(): self
-    {
-        dump($this);
-
-        return $this;
-    }
-
-    /**
-     * Call dd on this data transfer object.
-     */
-    public function dd(): void
-    {
-        dd($this);
-    }
-
+    
     /**
      * Get the instance as an array.
      *
@@ -160,51 +87,51 @@ abstract class DataTransferObject implements Arrayable
         /** @var array<\ReflectionProperty> $properties */
         $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
         $newPropertiesArr = [];
-
+    
         foreach ($properties as $property) {
             if (! $this->filled($property->name) && count($property->getAttributes(WithDefaultValue::class)) === 0) {
                 continue;
             }
-
+    
             $propertyValue = $property->getValue($this) ?? $property->getDefaultValue();
-
+    
             if ($propertyValue instanceof Arrayable) {
                 $propertyValue = $propertyValue->toArray();
             }
-
+    
             if ($propertyValue instanceof \stdClass) {
                 $propertyValue = (array) $propertyValue;
             }
-
+    
             $newPropertiesArr[Str::snake($property->name)] = $propertyValue;
         }
-
+    
         return $newPropertiesArr;
     }
-
+    
     public function __serialize(): array
     {
         $reflection = new \ReflectionClass($this);
-
+    
         /** @var array<\ReflectionProperty> $properties */
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-
+    
         $serialisableArr = [];
-
+    
         foreach ($properties as $property) {
             $key = $property->getName();
             $value = $property->getValue($this);
-
+    
             /** @var array<\ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModel>> $propertyModelBindingAttribute */
             $propertyModelBindingAttribute = $property->getAttributes(BindModel::class);
             $propertyModelBindingAttribute = reset($propertyModelBindingAttribute);
-
+    
             $propertyModelBindingAttributeName = null;
-
+    
             if ($propertyModelBindingAttribute) {
                 $propertyModelBindingAttributeName = $propertyModelBindingAttribute->newInstance()->using;
             }
-
+    
             $serialisableArr[$key] = match (true) {
                 $value instanceof Model => $value->getAttribute($propertyModelBindingAttributeName ?? $value->getRouteKeyName()),
                 $value instanceof Collection => $value->first() instanceof Model ? $value->map(fn (Model $model) => $model->getAttribute($propertyModelBindingAttributeName ?? $model->getRouteKeyName()))->join(',') : $value->join(','),
@@ -214,26 +141,24 @@ abstract class DataTransferObject implements Arrayable
                 default => $value,
             };
         }
-
+    
         return $serialisableArr;
     }
-
+    
     /**
      * Called during unserialization of the object.
      */
     public function __unserialize(array $data): void
     {
         $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
-
-        $propertiesMapper = new PropertiesMapper(array_merge($data), static::class);
-
-        $propertiesMapper->run();
-
-        $data = $propertiesMapper->get();
-
+    
+        $propertiesMapper = new ObjectMapper(array_merge($data), static::class);
+    
+        $data = $propertiesMapper->run();
+    
         foreach ($properties as $property) {
             $key = $property->getName();
-
+    
             $this->{$key} = $data[$key] ?? $property->getDefaultValue();
         }
     }

@@ -54,16 +54,12 @@ class TypeGenerator
             $normalisesPropertiesKeys = true;
         }
 
-        /** @var array<\ReflectionProperty> $properties */
-        $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-        $propertyInfoExtractor = PropertiesMapper::propertyInfoExtractor();
+        $properties = ObjectMapper::getPropertiesInfoFrom($this->dataTransferObject);
 
         $exportedType = $this->getExportTypeName($reflection);
         $exportAsString = "export type {$exportedType} = {\n";
         
-        foreach ($properties as $property) {
-            /** @var array<\Symfony\Component\PropertyInfo\Type> $propertyTypes */
-            $propertyTypes = $propertyInfoExtractor->getTypes($this->dataTransferObject, $property->getName()) ?? [];
+        foreach ($properties as $propertyName => $propertyTypes) {
             $propertyType = reset($propertyTypes);
 
             $propertyTypeClass = $propertyType ? $propertyType->getClassName() : null;
@@ -73,16 +69,15 @@ class TypeGenerator
             }
 
             $propertyTypeAsString = $this->extractTypeFromPropertyType($propertyType);
-            $propertyKeyAsString = $property->getName();
 
             if ($normalisesPropertiesKeys) {
-                $propertyKeyAsString = Str::snake($propertyKeyAsString);
+                $propertyKeyAsString = Str::snake($propertyName);
                 $propertyKeyAsString .= is_subclass_of($propertyTypeClass, Model::class) ? '_id' : '';
             }
 
             $nullMark = $this->isNullableProperty(
                 $propertyType,
-                $property->getName(),
+                $propertyName,
                 $constructorParameters
             ) ? '?' : '';
 

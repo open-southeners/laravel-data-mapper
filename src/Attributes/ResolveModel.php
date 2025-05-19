@@ -9,12 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class BindModel
+final class ResolveModel
 {
     public function __construct(
-        public string|array|null $using = null,
-        public string|array $with = [],
-        public string|null $morphTypeKey = null
+        public string|array|null $keyFromRouteParam = null,
+        public string|null $morphTypeFrom = null
     ) {
         //
     }
@@ -26,12 +25,12 @@ class BindModel
 
     public function getBindingAttribute(string $key, string $type, array $with)
     {
-        $usingAttribute = $this->using;
+        $usingAttribute = $this->keyFromRouteParam;
 
         if (is_array($usingAttribute)) {
             $typeModel = array_flip(Relation::morphMap())[$type];
 
-            $usingAttribute = $this->using[$typeModel] ?? null;
+            $usingAttribute = $this->keyFromRouteParam[$typeModel] ?? null;
         }
 
         /** @var \Illuminate\Http\Request|null $request */
@@ -61,19 +60,10 @@ class BindModel
             ->with($with);
     }
 
-    public function getRelationshipsFor(string $type): array
-    {
-        $withRelations = (array) $this->with;
-
-        $withRelations = $withRelations[$type] ?? $withRelations;
-
-        return (array) $withRelations;
-    }
-
     public function getMorphPropertyTypeKey(string $fromPropertyKey): string
     {
-        if ($this->morphTypeKey) {
-            return Str::snake($this->morphTypeKey);
+        if ($this->morphTypeFrom) {
+            return Str::snake($this->morphTypeFrom);
         }
 
         return static::getDefaultMorphKeyFrom($fromPropertyKey);
@@ -98,9 +88,6 @@ class BindModel
         );
 
         if (count($modelModelClass) === 0 && count($propertyTypeClasses) > 0) {
-            var_dump($propertyTypeClasses);
-            var_dump($morphMap);
-            var_dump($types);
             $modelModelClass = array_filter(
                 $propertyTypeClasses,
                 fn (string $class) => in_array((new $class())->getMorphClass(), $types)
