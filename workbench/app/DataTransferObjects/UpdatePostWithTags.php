@@ -12,6 +12,5 @@ class UpdatePostWithTags implements DataTransferObject
         public Post $post,
         public string $title,
         public Collection $tags
-    ) {
-    }
+    ) {}
 }

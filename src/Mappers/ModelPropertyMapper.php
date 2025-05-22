@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\PropertyMappers;
+namespace OpenSoutheners\LaravelDto\Mappers;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -12,7 +12,7 @@ use ReflectionAttribute;
 use ReflectionProperty;
 use Symfony\Component\PropertyInfo\Type;
 
-final class ModelPropertyMapper implements PropertyMapper
+final class ModelDataMapper implements DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
@@ -22,14 +22,14 @@ final class ModelPropertyMapper implements PropertyMapper
         return $mappingValue->preferredTypeClass === Model::class
             || is_subclass_of($mappingValue->preferredTypeClass, Model::class);
     }
-    
+
     /**
      * Resolve mapper that runs once assert returns true.
      */
     public function resolve(MappingValue $mappingValue): mixed
     {
         $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
-        
+
         /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
         $resolveModelAttributeReflector = reset($resolveModelAttributeReflector);
 
@@ -56,7 +56,7 @@ final class ModelPropertyMapper implements PropertyMapper
 
         if (is_array($modelType) && $mappingValue->objectClass === Collection::class) {
             $valueClass = get_class($mappingValue->data);
-            
+
             $modelType = $modelClass[array_search($valueClass, $modelClass)];
         }
 
@@ -83,7 +83,7 @@ final class ModelPropertyMapper implements PropertyMapper
 
         return Collection::make(array_map(
             function (mixed $valueA, mixed $valueB) use (&$lastNonValue): array {
-                if (!is_null($valueB)) {
+                if (! is_null($valueB)) {
                     $lastNonValue = $valueB;
                 }
 
@@ -91,11 +91,10 @@ final class ModelPropertyMapper implements PropertyMapper
             },
             $mappingValue->data instanceof Collection ? $mappingValue->data->all() : (array) $mappingValue->data,
             (array) $modelType
-        ))->mapToGroups(fn (array $value) => [$value[1] => $value[0]])->flatMap(fn (Collection $keys, string $model) =>
-            $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute)
+        ))->mapToGroups(fn (array $value) => [$value[1] => $value[0]])->flatMap(fn (Collection $keys, string $model) => $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute)
         );
     }
-    
+
     /**
      * Get model instance(s) for model class and given IDs.
      *
@@ -129,11 +128,11 @@ final class ModelPropertyMapper implements PropertyMapper
 
         return $baseQuery->first();
     }
-    
+
     /**
      * Resolve model class strings and keys into instances.
      *
-     * @param array<string, string[]> $withAttributes
+     * @param  array<string, string[]>  $withAttributes
      */
     protected function resolveIntoModelInstance(mixed $keys, string $modelClass, string $propertyKey, array $withAttributes = [], ?ResolveModel $bindingAttribute = null): mixed
     {

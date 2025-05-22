@@ -9,6 +9,6 @@ class WithDefaultValue
 {
     public function __construct(public mixed $value)
     {
-        // 
+        //
     }
 }

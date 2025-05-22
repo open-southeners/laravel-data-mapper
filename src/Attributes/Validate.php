@@ -9,6 +9,6 @@ class Validate
 {
     public function __construct(public string $value)
     {
-        // 
+        //
     }
 }

@@ -9,6 +9,6 @@ class ModelWith
 {
     public function __construct(public string|array $relations, public ?string $type = null)
     {
-        // 
+        //
     }
 }

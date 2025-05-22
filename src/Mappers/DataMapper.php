@@ -1,10 +1,10 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\PropertyMappers;
+namespace OpenSoutheners\LaravelDto\Mappers;
 
 use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 
-interface PropertyMapper
+interface DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.

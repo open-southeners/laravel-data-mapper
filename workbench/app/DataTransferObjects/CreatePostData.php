@@ -2,7 +2,6 @@
 
 namespace Workbench\App\DataTransferObjects;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Attributes\Authenticated;
@@ -21,7 +20,7 @@ class CreatePostData implements DataTransferObject
      */
     public function __construct(
         public string $title,
-        public array|null $tags,
+        public ?array $tags,
         public PostStatus $postStatus,
         public ?Post $post = null,
         public array|string|null $country = null,
@@ -35,7 +34,7 @@ class CreatePostData implements DataTransferObject
         $authorEmail = null
     ) {
         $this->tags ??= ['generic', 'post'];
-        
+
         $this->authorEmail = $authorEmail;
     }
 }

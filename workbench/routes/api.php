@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Workbench\App\DataTransferObjects\UpdatePostWithRouteBindingData;
-use Workbench\App\DataTransferObjects\UpdatePostWithTags;
 use Workbench\App\DataTransferObjects\UpdateTagData;
 
 /*

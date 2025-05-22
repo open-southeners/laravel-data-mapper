@@ -9,7 +9,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Mockery;
 use OpenSoutheners\LaravelDto\ObjectMapper;
-use OpenSoutheners\LaravelDto\PropertyMappers;
 use PHPUnit\Framework\TestCase;
 use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
@@ -20,10 +19,10 @@ use function OpenSoutheners\LaravelDto\map;
 
 class DataTransferObjectTest extends TestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
-        
+
         ObjectMapper::registerMapper([
             new PropertyMappers\ModelPropertyMapper,
             new PropertyMappers\CollectionPropertyMapper,
@@ -49,7 +48,7 @@ class DataTransferObjectTest extends TestCase
         Container::getInstance()->bind('dto.context.booted', fn () => '');
     }
 
-    public function testDataTransferObjectFromArray()
+    public function test_data_transfer_object_from_array()
     {
         $data = map([
             'title' => 'Hello world',
@@ -64,7 +63,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertNull($data->post);
     }
 
-    public function testDataTransferObjectFromArrayDelimitedLists()
+    public function test_data_transfer_object_from_array_delimited_lists()
     {
         $data = map([
             'title' => 'Hello world',
@@ -77,10 +76,10 @@ class DataTransferObjectTest extends TestCase
         $this->assertIsString($data->country);
     }
 
-    public function testDataTransferObjectFilledViaClassProperties()
+    public function test_data_transfer_object_filled_via_class_properties()
     {
         $this->markTestSkipped('To implement filled method as trait');
-        
+
         $data = map([
             'title' => 'Hello world',
             'tags' => '',
@@ -95,7 +94,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertFalse($data->filled('author_email'));
     }
 
-    public function testDataTransferObjectWithDefaults()
+    public function test_data_transfer_object_with_defaults()
     {
         $data = map([
             'title' => 'Hello world',
@@ -107,7 +106,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertContains('post', $data->tags);
     }
 
-    public function testDataTransferObjectArrayWithoutTypedPropertiesGetsThroughWithoutChanges()
+    public function test_data_transfer_object_array_without_typed_properties_gets_through_without_changes()
     {
         $helloTag = [
             'name' => 'Hello world',
@@ -132,7 +131,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertContains($travelingTag, $data->tags);
     }
 
-    public function testDataTransferObjectArrayPropertiesGetsMappedAsCollection()
+    public function test_data_transfer_object_array_properties_gets_mapped_as_collection()
     {
         $rubenUser = [
             'name' => 'Rubén Robles',
@@ -159,7 +158,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertContains($taylorUser, $data->subscribers);
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromStringsIntoCarbonInstances()
+    public function test_data_transfer_object_date_properties_get_mapped_from_strings_into_carbon_instances()
     {
         $data = map([
             'title' => 'Hello world',
@@ -173,7 +172,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertTrue(now()->isAfter($data->publishedAt));
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromJsonStringsIntoGenericObjects()
+    public function test_data_transfer_object_date_properties_get_mapped_from_json_strings_into_generic_objects()
     {
         $data = map([
             'title' => 'Hello world',
@@ -186,7 +185,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertObjectHasProperty('type', $data->content);
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromArraysIntoGenericObjects()
+    public function test_data_transfer_object_date_properties_get_mapped_from_arrays_into_generic_objects()
     {
         $data = map([
             'title' => 'Hello world',
@@ -215,7 +214,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertObjectHasProperty('type', $data->content);
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromArraysOfObjectsIntoCollectionOfGenericObjects()
+    public function test_data_transfer_object_date_properties_get_mapped_from_arrays_of_objects_into_collection_of_generic_objects()
     {
         $data = map([
             'title' => 'Hello world',
@@ -233,7 +232,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertTrue(now()->isAfter($data->dates->last()));
     }
 
-    public function testDataTransferObjectDatePropertiesDoesNotGetMappedFromCollectionsToSameType()
+    public function test_data_transfer_object_date_properties_does_not_get_mapped_from_collections_to_same_type()
     {
         $data = map([
             'title' => 'Hello world',
@@ -250,7 +249,7 @@ class DataTransferObjectTest extends TestCase
         $this->assertIsString($data->dates->first());
     }
 
-    public function testDataTransferObjectSentIntoAnotherAsCollectedWillBeMappedFromArray()
+    public function test_data_transfer_object_sent_into_another_as_collected_will_be_mapped_from_array()
     {
         $data = map([
             'posts' => [
@@ -288,14 +287,14 @@ class DataTransferObjectTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $data->posts->last()->dates->first());
     }
 
-    public function testDataTransferObjectRetainKeysFromNestedObjectsOrArrays()
+    public function test_data_transfer_object_retain_keys_from_nested_objects_or_arrays()
     {
         $data = map([
             'content' => 'hello world',
             'tags' => [
                 'hello' => 'world',
-                'foo' => 'bar'
-            ]
+                'foo' => 'bar',
+            ],
         ])->to(CreateComment::class);
 
         $this->assertArrayHasKey('hello', $data->tags);

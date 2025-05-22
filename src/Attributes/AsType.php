@@ -9,6 +9,6 @@ class AsType
 {
     public function __construct(public string $typeName)
     {
-        // 
+        //
     }
 }

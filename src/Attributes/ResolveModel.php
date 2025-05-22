@@ -13,7 +13,7 @@ final class ResolveModel
 {
     public function __construct(
         public string|array|null $keyFromRouteParam = null,
-        public string|null $morphTypeFrom = null
+        public ?string $morphTypeFrom = null
     ) {
         //
     }
@@ -54,7 +54,7 @@ final class ResolveModel
 
     protected function resolveBinding(string $model, mixed $value, mixed $field = null, array $with = [])
     {
-        $modelInstance = new $model();
+        $modelInstance = new $model;
 
         return $modelInstance->resolveRouteBindingQuery($modelInstance, $value, $field)
             ->with($with);
@@ -66,7 +66,7 @@ final class ResolveModel
             return Str::snake($this->morphTypeFrom);
         }
 
-        return static::getDefaultMorphKeyFrom($fromPropertyKey);
+        return self::getDefaultMorphKeyFrom($fromPropertyKey);
     }
 
     public function getMorphModel(string $fromPropertyKey, array $properties, array $propertyTypeClasses = []): array
@@ -90,7 +90,7 @@ final class ResolveModel
         if (count($modelModelClass) === 0 && count($propertyTypeClasses) > 0) {
             $modelModelClass = array_filter(
                 $propertyTypeClasses,
-                fn (string $class) => in_array((new $class())->getMorphClass(), $types)
+                fn (string $class) => in_array((new $class)->getMorphClass(), $types)
             );
 
             $modelModelClass = reset($modelModelClass);

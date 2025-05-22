@@ -1,13 +1,13 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\PropertyMappers;
+namespace OpenSoutheners\LaravelDto\Mappers;
 
 use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 use stdClass;
 
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 
-final class GenericObjectPropertyMapper implements PropertyMapper
+final class GenericObjectDataMapper implements DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
@@ -26,7 +26,7 @@ final class GenericObjectPropertyMapper implements PropertyMapper
         if (is_array($mappingValue->data)) {
             return (object) $mappingValue->data;
         }
-        
+
         return json_decode($mappingValue->data);
     }
 }

@@ -3,7 +3,6 @@
 namespace Workbench\App\DataTransferObjects;
 
 use Carbon\CarbonImmutable;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Attributes\AsType;
 use OpenSoutheners\LaravelDto\Attributes\Authenticated;

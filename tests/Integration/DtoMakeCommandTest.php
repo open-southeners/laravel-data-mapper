@@ -12,7 +12,7 @@ class DtoMakeCommandTest extends TestCase
         'app/DataTransferObjects/CreatePostData.php',
     ];
 
-    public function testMakeDataTransferObjectCommandCreatesBasicClassWithName()
+    public function test_make_data_transfer_object_command_creates_basic_class_with_name()
     {
         $this->artisan('make:dto', ['name' => 'CreatePostData'])
             ->assertExitCode(0);
@@ -23,7 +23,7 @@ class DtoMakeCommandTest extends TestCase
         ], 'app/DataTransferObjects/CreatePostData.php');
     }
 
-    public function testMakeDataTransferObjectCommandWithEmptyRequestOptionCreatesTheFileWithValidatedRequest()
+    public function test_make_data_transfer_object_command_with_empty_request_option_creates_the_file_with_validated_request()
     {
         $this->artisan('make:dto', [
             'name' => 'CreatePostData',
@@ -39,7 +39,7 @@ class DtoMakeCommandTest extends TestCase
     }
 
     // TODO: Test properties from rules population
-    public function testMakeDataTransferObjectCommandWithRequestOptionCreatesTheFileWithProperties()
+    public function test_make_data_transfer_object_command_with_request_option_creates_the_file_with_properties()
     {
         $this->artisan('make:dto', [
             'name' => 'CreatePostData',

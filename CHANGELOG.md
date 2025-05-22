@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Attribute `OpenSoutheners\LaravelDto\Attributes\Inject` to inject container stuff
 - Attribute `OpenSoutheners\LaravelDto\Attributes\Authenticated` that uses base `Illuminate\Container\Attributes\Authenticated` to inject current authenticated user
 - Ability to register custom mappers (extending package functionality)
+- ObjectMapper now extracts type info from generics inside collections typed properties [#1]
+
+### Changed
+
+- Full refactor [#7]
 
 ### Removed
 

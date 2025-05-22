@@ -4,9 +4,9 @@ namespace OpenSoutheners\LaravelDto\Commands;
 
 use Illuminate\Console\GeneratorCommand;
 use Illuminate\Support\Str;
+use OpenSoutheners\ExtendedLaravel\Console\Concerns\OpensGeneratedFiles;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
-use OpenSoutheners\ExtendedLaravel\Console\Concerns\OpensGeneratedFiles;
 
 #[AsCommand(name: 'make:dto')]
 class DtoMakeCommand extends GeneratorCommand
@@ -138,7 +138,7 @@ class DtoMakeCommand extends GeneratorCommand
             return '';
         }
 
-        $requestInstance = new $requestClass();
+        $requestInstance = new $requestClass;
         $properties = '';
 
         $requestRules = $requestInstance->rules();

@@ -4,6 +4,7 @@ namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
 use Illuminate\Support\Facades\App;
 use Orchestra\Testbench\Concerns\InteractsWithPublishedFiles;
+
 use function Orchestra\Testbench\workbench_path;
 
 class DtoTypescriptGenerateCommandTest extends TestCase
@@ -28,7 +29,7 @@ class DtoTypescriptGenerateCommandTest extends TestCase
         ]);
     }
 
-    public function testDtoTypescriptGeneratesTypescriptTypesFile()
+    public function test_dto_typescript_generates_typescript_types_file()
     {
         App::shouldReceive('getNamespace')
             ->once()

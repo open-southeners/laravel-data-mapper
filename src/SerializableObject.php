@@ -76,7 +76,7 @@ abstract class SerializableObject implements Arrayable
 
         return true;
     }
-    
+
     /**
      * Get the instance as an array.
      *
@@ -87,51 +87,51 @@ abstract class SerializableObject implements Arrayable
         /** @var array<\ReflectionProperty> $properties */
         $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
         $newPropertiesArr = [];
-    
+
         foreach ($properties as $property) {
             if (! $this->filled($property->name) && count($property->getAttributes(WithDefaultValue::class)) === 0) {
                 continue;
             }
-    
+
             $propertyValue = $property->getValue($this) ?? $property->getDefaultValue();
-    
+
             if ($propertyValue instanceof Arrayable) {
                 $propertyValue = $propertyValue->toArray();
             }
-    
+
             if ($propertyValue instanceof \stdClass) {
                 $propertyValue = (array) $propertyValue;
             }
-    
+
             $newPropertiesArr[Str::snake($property->name)] = $propertyValue;
         }
-    
+
         return $newPropertiesArr;
     }
-    
+
     public function __serialize(): array
     {
         $reflection = new \ReflectionClass($this);
-    
+
         /** @var array<\ReflectionProperty> $properties */
         $properties = $reflection->getProperties(\ReflectionProperty::IS_PUBLIC);
-    
+
         $serialisableArr = [];
-    
+
         foreach ($properties as $property) {
             $key = $property->getName();
             $value = $property->getValue($this);
-    
+
             /** @var array<\ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModel>> $propertyModelBindingAttribute */
             $propertyModelBindingAttribute = $property->getAttributes(BindModel::class);
             $propertyModelBindingAttribute = reset($propertyModelBindingAttribute);
-    
+
             $propertyModelBindingAttributeName = null;
-    
+
             if ($propertyModelBindingAttribute) {
                 $propertyModelBindingAttributeName = $propertyModelBindingAttribute->newInstance()->using;
             }
-    
+
             $serialisableArr[$key] = match (true) {
                 $value instanceof Model => $value->getAttribute($propertyModelBindingAttributeName ?? $value->getRouteKeyName()),
                 $value instanceof Collection => $value->first() instanceof Model ? $value->map(fn (Model $model) => $model->getAttribute($propertyModelBindingAttributeName ?? $model->getRouteKeyName()))->join(',') : $value->join(','),
@@ -141,24 +141,24 @@ abstract class SerializableObject implements Arrayable
                 default => $value,
             };
         }
-    
+
         return $serialisableArr;
     }
-    
+
     /**
      * Called during unserialization of the object.
      */
     public function __unserialize(array $data): void
     {
         $properties = (new \ReflectionClass($this))->getProperties(\ReflectionProperty::IS_PUBLIC);
-    
+
         $propertiesMapper = new ObjectMapper(array_merge($data), static::class);
-    
+
         $data = $propertiesMapper->run();
-    
+
         foreach ($properties as $property) {
             $key = $property->getName();
-    
+
             $this->{$key} = $data[$key] ?? $property->getDefaultValue();
         }
     }

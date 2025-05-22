@@ -16,7 +16,7 @@ class TypeGenerator
 {
     /**
      * Map native types from PHP to TypeScript.
-     * 
+     *
      * @var array<string, string>
      */
     public const PHP_TO_TYPESCRIPT_VARIANT_TYPES = [
@@ -30,7 +30,7 @@ class TypeGenerator
         protected string $dataTransferObject,
         protected Collection $generatedTypes
     ) {
-        // 
+        //
     }
 
     /**
@@ -40,16 +40,16 @@ class TypeGenerator
     {
         $reflection = new ReflectionClass($this->dataTransferObject);
 
-        /** 
+        /**
          * Only needed when non-typed properties are found to compare with isOptional
          * on the parameter reflector.
-         * 
+         *
          * @var array<\ReflectionParameter> $constructorParameters
          */
         $constructorParameters = $reflection->getConstructor() ? $reflection->getConstructor()->getParameters() : [];
 
         $normalisesPropertiesKeys = config('data-transfer-objects.normalise_properties', true);
-        
+
         if (! empty($reflection->getAttributes(NormaliseProperties::class))) {
             $normalisesPropertiesKeys = true;
         }
@@ -58,7 +58,7 @@ class TypeGenerator
 
         $exportedType = $this->getExportTypeName($reflection);
         $exportAsString = "export type {$exportedType} = {\n";
-        
+
         foreach ($properties as $propertyName => $propertyTypes) {
             $propertyType = reset($propertyTypes);
 
@@ -84,15 +84,15 @@ class TypeGenerator
             $exportAsString .= "\t{$propertyKeyAsString}{$nullMark}: {$propertyTypeAsString};\n";
         }
 
-        $exportAsString .= "};";
+        $exportAsString .= '};';
 
         $this->generatedTypes[$exportedType] = $exportAsString;
     }
 
     /**
      * Determine whether the specified property is nullable.
-     * 
-     * @param array<\ReflectionParameter> $constructorParameters
+     *
+     * @param  array<\ReflectionParameter>  $constructorParameters
      */
     protected function isNullableProperty(Type|false $propertyType, string $propertyName, array $constructorParameters): bool
     {
@@ -172,7 +172,7 @@ class TypeGenerator
 
     /**
      * Generate types from PHP native enum.
-     * 
+     *
      * @see https://www.typescriptlang.org/docs/handbook/enums.html#objects-vs-enums
      */
     protected function extractEnumType(string $enumClass): string
@@ -182,16 +182,16 @@ class TypeGenerator
         if ($this->generatedTypes->has($exportedType)) {
             return $exportedType;
         }
-        
+
         $exportsAsString = '';
         $exportsAsString .= "export const enum {$exportedType} {\n";
-        
+
         foreach ($enumClass::cases() as $case) {
             $caseValueAsString = is_int($case->value) ? $case->value : "\"{$case->value}\"";
             $exportsAsString .= "\t{$case->name} = {$caseValueAsString},\n";
         }
 
-        $exportsAsString .= "};";
+        $exportsAsString .= '};';
 
         $this->generatedTypes[$exportedType] = $exportsAsString;
 
@@ -200,8 +200,8 @@ class TypeGenerator
 
     /**
      * Generate types from collection.
-     * 
-     * @param array<\Symfony\Component\PropertyInfo\Type> $collectedTypes
+     *
+     * @param  array<\Symfony\Component\PropertyInfo\Type>  $collectedTypes
      */
     protected function extractCollectionType(string $collection, array $collectedTypes): string
     {
@@ -216,8 +216,8 @@ class TypeGenerator
 
     /**
      * Generate types from Eloquent models bindings.
-     * 
-     * @param class-string<\Illuminate\Database\Eloquent\Model> $modelClass
+     *
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $modelClass
      */
     protected function extractModelType(string $modelClass): string
     {

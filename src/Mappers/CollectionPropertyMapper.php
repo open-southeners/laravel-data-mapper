@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\PropertyMappers;
+namespace OpenSoutheners\LaravelDto\Mappers;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +11,7 @@ use Symfony\Component\PropertyInfo\Type;
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 use function OpenSoutheners\LaravelDto\map;
 
-final class CollectionPropertyMapper implements PropertyMapper
+final class CollectionDataMapper implements DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
@@ -22,13 +22,13 @@ final class CollectionPropertyMapper implements PropertyMapper
             || $mappingValue->preferredTypeClass === Collection::class
             || $mappingValue->preferredTypeClass === EloquentCollection::class;
     }
-    
+
     /**
      * Resolve mapper that runs once assert returns true.
      *
-     * @param string[]|string $types
-     * @param Collection<\ReflectionAttribute> $attributes
-     * @param array<string, mixed> $properties
+     * @param  string[]|string  $types
+     * @param  Collection<\ReflectionAttribute>  $attributes
+     * @param  array<string, mixed>  $properties
      */
     public function resolve(MappingValue $mappingValue): mixed
     {
@@ -63,7 +63,7 @@ final class CollectionPropertyMapper implements PropertyMapper
         $preferredCollectionTypeClass = $preferredCollectionType ? $preferredCollectionType->getClassName() : null;
 
         $collection = $collection->map(fn ($value) => is_string($value) ? trim($value) : $value)
-            ->filter(fn($item) => !blank($item));
+            ->filter(fn ($item) => ! blank($item));
 
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {

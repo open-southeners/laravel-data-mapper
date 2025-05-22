@@ -3,6 +3,7 @@
 namespace OpenSoutheners\LaravelDto\Tests\Integration;
 
 use Orchestra\Testbench\Concerns\WithWorkbench;
+
 use function Orchestra\Testbench\workbench_path;
 
 class TestCase extends \Orchestra\Testbench\TestCase

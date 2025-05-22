@@ -21,7 +21,7 @@ class ValidatedDataTransferObjectTest extends TestCase
         $this->withoutExceptionHandling();
     }
 
-    public function testValidatedDataTransferObjectGetsRouteBoundModel()
+    public function test_validated_data_transfer_object_gets_route_bound_model()
     {
         $post = PostFactory::new()->hasAttached(
             TagFactory::new()->count(2)
@@ -34,7 +34,7 @@ class ValidatedDataTransferObjectTest extends TestCase
         ], true);
     }
 
-    public function testValidatedDataTransferObjectGetsValidatedOnlyParameters()
+    public function test_validated_data_transfer_object_gets_validated_only_parameters()
     {
         PostFactory::new()->create();
 
@@ -64,7 +64,7 @@ class ValidatedDataTransferObjectTest extends TestCase
         ], true);
     }
 
-    public function testDataTransferObjectWithModelSentDoesLoadRelationshipIfMissing()
+    public function test_data_transfer_object_with_model_sent_does_load_relationship_if_missing()
     {
         $post = PostFactory::new()->hasAttached(
             TagFactory::new()->count(2)
@@ -82,7 +82,7 @@ class ValidatedDataTransferObjectTest extends TestCase
         $this->assertEmpty(DB::getQueryLog());
     }
 
-    public function testDataTransferObjectWithModelSentDoesNotRunQueriesToFetchItAgain()
+    public function test_data_transfer_object_with_model_sent_does_not_run_queries_to_fetch_it_again()
     {
         $post = PostFactory::new()->make();
 
@@ -98,7 +98,7 @@ class ValidatedDataTransferObjectTest extends TestCase
         $this->assertTrue($data->post->is($post));
     }
 
-    public function testDataTransferObjectCanBeSerializedAndDeserialized()
+    public function test_data_transfer_object_can_be_serialized_and_deserialized()
     {
         $this->withoutExceptionHandling();
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\PropertyMappers;
+namespace OpenSoutheners\LaravelDto\Mappers;
 
 use BackedEnum;
 use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 
-final class BackedEnumPropertyMapper implements PropertyMapper
+final class BackedEnumDataMapper implements DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
