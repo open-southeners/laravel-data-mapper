@@ -8,7 +8,8 @@ use Illuminate\Container\Container;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Mockery;
-use OpenSoutheners\LaravelDto\ObjectMapper;
+use OpenSoutheners\LaravelDto\Mappers;
+use OpenSoutheners\LaravelDto\ServiceProvider;
 use PHPUnit\Framework\TestCase;
 use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
@@ -23,13 +24,14 @@ class DataTransferObjectTest extends TestCase
     {
         parent::setUp();
 
-        ObjectMapper::registerMapper([
-            new PropertyMappers\ModelPropertyMapper,
-            new PropertyMappers\CollectionPropertyMapper,
-            new PropertyMappers\ObjectPropertyMapper,
-            new PropertyMappers\GenericObjectPropertyMapper,
-            new PropertyMappers\CarbonPropertyMapper,
-            new PropertyMappers\BackedEnumPropertyMapper,
+        ServiceProvider::registerMapper([
+            Mappers\CollectionDataMapper::class,
+            Mappers\ModelDataMapper::class,
+    
+            Mappers\CarbonDataMapper::class,
+            Mappers\BackedEnumDataMapper::class,
+            Mappers\GenericObjectDataMapper::class,
+            Mappers\ObjectDataMapper::class,
         ]);
 
         $mockedConfig = Mockery::mock(Repository::class);
@@ -245,8 +247,8 @@ class DataTransferObjectTest extends TestCase
         ])->to(CreatePostData::class);
 
         $this->assertTrue($data->dates instanceof Collection);
-        $this->assertFalse($data->dates->first() instanceof Carbon);
-        $this->assertIsString($data->dates->first());
+        $this->assertTrue($data->dates->first() instanceof Carbon);
+        $this->assertTrue($data->dates->last() instanceof Carbon);
     }
 
     public function test_data_transfer_object_sent_into_another_as_collected_will_be_mapped_from_array()

@@ -4,12 +4,12 @@ namespace Workbench\App\DataTransferObjects;
 
 use OpenSoutheners\LaravelDto\Attributes\Authenticated;
 use OpenSoutheners\LaravelDto\Attributes\ResolveModel;
-use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
+use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
 use Workbench\App\Models\Post;
 use Workbench\App\Models\Tag;
 use Workbench\App\Models\User;
 
-class UpdatePostWithDefaultData implements DataTransferObject
+class UpdatePostWithDefaultData implements RouteTransferableObject
 {
     /**
      * @param  string[]  $tags

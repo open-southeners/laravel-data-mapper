@@ -82,7 +82,7 @@ final class ObjectDataMapper implements DataMapper
                 continue;
             }
 
-            $preferredType = reset($propertyTypes);
+            $preferredType = $propertyTypes[0] ?? null;
             $propertyTypesClasses = array_filter(array_map(fn (Type $type) => $type->getClassName(), $propertyTypes));
             $preferredTypeClass = $preferredType->getClassName();
 

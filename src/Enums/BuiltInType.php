@@ -8,7 +8,7 @@ enum BuiltInType: string
     case Array = 'array';
     case Iterable = 'iterable';
 
-    case Integer = 'int';
+    case Integer = 'integer';
     case Float = 'float';
 
     case String = 'string';

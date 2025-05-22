@@ -7,21 +7,20 @@ use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use OpenSoutheners\LaravelDto\Attributes\Validate;
 use OpenSoutheners\LaravelDto\Commands\DtoMakeCommand;
 use OpenSoutheners\LaravelDto\Commands\DtoTypescriptGenerateCommand;
-use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
-use OpenSoutheners\LaravelDto\PropertyMappers\PropertyMapper;
+use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
+use OpenSoutheners\LaravelDto\Mappers;
 use ReflectionClass;
 
 class ServiceProvider extends BaseServiceProvider
 {
     protected static $mappers = [
-        PropertyMappers\CollectionPropertyMapper::class,
-        PropertyMappers\ModelPropertyMapper::class,
+        Mappers\CollectionDataMapper::class,
+        Mappers\ModelDataMapper::class,
 
-        PropertyMappers\CarbonPropertyMapper::class,
-        PropertyMappers\BackedEnumPropertyMapper::class,
-        PropertyMappers\GenericObjectPropertyMapper::class,
-        PropertyMappers\ObjectPropertyMapper::class,
-
+        Mappers\CarbonDataMapper::class,
+        Mappers\BackedEnumDataMapper::class,
+        Mappers\GenericObjectDataMapper::class,
+        Mappers\ObjectDataMapper::class,
     ];
 
     /**
@@ -40,7 +39,7 @@ class ServiceProvider extends BaseServiceProvider
         }
 
         $this->app->beforeResolving(
-            DataTransferObject::class,
+            RouteTransferableObject::class,
             function ($dataClass, $parameters, $app) {
                 /** @var \Illuminate\Foundation\Application $app */
                 $app->scoped($dataClass, function () use ($dataClass, $app) {
@@ -70,7 +69,7 @@ class ServiceProvider extends BaseServiceProvider
     /**
      * Register new dynamic mappers.
      */
-    public function registerMapper(string|array $mapper, bool $replacing = false): void
+    public static function registerMapper(string|array $mapper, bool $replacing = false): void
     {
         $mappers = (array) $mapper;
 
@@ -89,7 +88,7 @@ class ServiceProvider extends BaseServiceProvider
         foreach (static::$mappers as $mapper) {
             $mapperInstance = new $mapper;
 
-            if ($mapperInstance instanceof PropertyMapper) {
+            if ($mapperInstance instanceof Mappers\DataMapper) {
                 $mappers[] = $mapperInstance;
             }
         }

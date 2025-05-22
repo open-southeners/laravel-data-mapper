@@ -3,9 +3,8 @@
 namespace Workbench\App\DataTransferObjects;
 
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
 
-class CreateManyPostData implements DataTransferObject
+class CreateManyPostData
 {
     /**
      * @param  \Illuminate\Support\Collection<\Workbench\App\DataTransferObjects\CreatePostData>  $posts

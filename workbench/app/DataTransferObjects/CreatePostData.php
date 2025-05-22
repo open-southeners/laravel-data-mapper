@@ -5,13 +5,13 @@ namespace Workbench\App\DataTransferObjects;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Attributes\Authenticated;
-use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
+use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
 use stdClass;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\Post;
 use Workbench\App\Models\User;
 
-class CreatePostData implements DataTransferObject
+class CreatePostData implements RouteTransferableObject
 {
     public mixed $authorEmail = 'me@d8vjork.com';
 

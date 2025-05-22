@@ -4,6 +4,7 @@ namespace OpenSoutheners\LaravelDto;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 use OpenSoutheners\LaravelDto\Enums\BuiltInType;
 use ReflectionClass;
@@ -50,6 +51,7 @@ final class Mapper
                 is_object($input->route()) ? $input->route()->parameters() : [],
                 $input instanceof FormRequest ? $input->validated() : $input->all()
             ),
+            $input instanceof Collection => $input->all(),
             is_object($input) => $this->extractProperties($input),
             default => $input,
         };

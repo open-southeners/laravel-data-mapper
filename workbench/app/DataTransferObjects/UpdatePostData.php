@@ -2,10 +2,9 @@
 
 namespace Workbench\App\DataTransferObjects;
 
-use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
 use Workbench\App\Models\Post;
 
-class UpdatePostData implements DataTransferObject
+class UpdatePostData
 {
     /**
      * @param  string[]  $tags

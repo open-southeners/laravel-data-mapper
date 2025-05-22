@@ -32,14 +32,10 @@ final class CollectionDataMapper implements DataMapper
      */
     public function resolve(MappingValue $mappingValue): mixed
     {
-        if ($mappingValue->objectClass === Collection::class) {
-            return $mappingValue->data instanceof EloquentCollection
-                ? $mappingValue->data->toBase()
-                : $mappingValue->data;
+        if ($mappingValue->objectClass === EloquentCollection::class) {
+            return $mappingValue->data->toBase();
         }
-
-        $propertyType = reset($mappingValue->types);
-
+        
         if (
             count(array_filter($mappingValue->types, fn (Type $type) => $type->getBuiltinType() === Type::BUILTIN_TYPE_STRING)) > 0
             && ! str_contains($mappingValue->types, ',')
@@ -47,19 +43,15 @@ final class CollectionDataMapper implements DataMapper
             return $mappingValue->data;
         }
 
-        if (is_json_structure($mappingValue->data)) {
-            $collection = Collection::make(json_decode($mappingValue->data, true));
-        } else {
-            $collection = Collection::make(
-                is_array($mappingValue->data)
-                    ? $mappingValue->data
-                    : explode(',', $mappingValue->data)
-            );
-        }
+        $collection = match (true) {
+            is_json_structure($mappingValue->data) => Collection::make(json_decode($mappingValue->data, true)),
+            is_string($mappingValue->data) => Collection::make(explode(',', $mappingValue->data)),
+            default => Collection::make($mappingValue->data),
+        };
 
-        $collectionTypes = $propertyType->getCollectionValueTypes();
+        $collectionTypes = $mappingValue->preferredType->getCollectionValueTypes();
 
-        $preferredCollectionType = reset($collectionTypes);
+        $preferredCollectionType = head($collectionTypes);
         $preferredCollectionTypeClass = $preferredCollectionType ? $preferredCollectionType->getClassName() : null;
 
         $collection = $collection->map(fn ($value) => is_string($value) ? trim($value) : $value)
@@ -75,7 +67,7 @@ final class CollectionDataMapper implements DataMapper
             }
         }
 
-        if ($propertyType->getBuiltinType() === Type::BUILTIN_TYPE_ARRAY) {
+        if ($mappingValue->preferredType->getBuiltinType() === Type::BUILTIN_TYPE_ARRAY) {
             $collection = $collection->all();
         }
 

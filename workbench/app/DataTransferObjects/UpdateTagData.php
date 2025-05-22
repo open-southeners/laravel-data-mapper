@@ -6,7 +6,7 @@ use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Attributes\Authenticated;
 use OpenSoutheners\LaravelDto\Attributes\ResolveModel;
 use OpenSoutheners\LaravelDto\Attributes\Validate;
-use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
+use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
 use Workbench\App\Http\Requests\TagUpdateFormRequest;
 use Workbench\App\Models\Film;
 use Workbench\App\Models\Post;
@@ -14,7 +14,7 @@ use Workbench\App\Models\Tag;
 use Workbench\App\Models\User;
 
 #[Validate(TagUpdateFormRequest::class)]
-class UpdateTagData implements DataTransferObject
+class UpdateTagData implements RouteTransferableObject
 {
     /**
      * @param  \Illuminate\Support\Collection<\Workbench\App\Models\Post|\Workbench\App\Models\Film>  $taggable
