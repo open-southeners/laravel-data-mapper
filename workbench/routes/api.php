@@ -17,11 +17,11 @@ use Workbench\App\DataTransferObjects\UpdateTagData;
 */
 
 Route::patch('post/{post}', function (UpdatePostWithRouteBindingData $data) {
-    return response()->json($data->toArray());
+    return response()->json((array) $data);
 })->middleware('api');
 
 Route::patch('tags/{tag}', function (UpdateTagData $data) {
     return response()->json([
-        'data' => $data->toArray(),
+        'data' => (array) $data,
     ]);
 })->middleware('api');

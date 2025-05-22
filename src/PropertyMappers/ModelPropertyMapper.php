@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Attributes\ModelWith;
 use OpenSoutheners\LaravelDto\Attributes\ResolveModel;
+use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 use ReflectionAttribute;
+use ReflectionProperty;
 use Symfony\Component\PropertyInfo\Type;
 
 final class ModelPropertyMapper implements PropertyMapper
@@ -15,49 +17,47 @@ final class ModelPropertyMapper implements PropertyMapper
     /**
      * Assert that this mapper resolves property with types given.
      */
-    public function assert(Type $preferredType, mixed $value): bool
+    public function assert(MappingValue $mappingValue): bool
     {
-        return $preferredType->getClassName() === Model::class
-            || is_subclass_of($preferredType->getClassName(), Model::class);
+        return $mappingValue->preferredTypeClass === Model::class
+            || is_subclass_of($mappingValue->preferredTypeClass, Model::class);
     }
     
     /**
      * Resolve mapper that runs once assert returns true.
-     *
-     * @param array<Type> $types
-     * @param Collection<\ReflectionAttribute> $attributes
      */
-    public function resolve(array $types, string $key, mixed $value, Collection $attributes, array $properties): mixed
+    public function resolve(MappingValue $mappingValue): mixed
     {
-        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\BindModel>|null $resolveModelAttribute */
-        $resolveModelAttribute = $attributes
-            ->filter(fn (ReflectionAttribute $reflection) => $reflection->getName() === ResolveModel::class)
-            ->first();
+        $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
+        
+        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
+        $resolveModelAttributeReflector = reset($resolveModelAttributeReflector);
 
-        /** @var \OpenSoutheners\LaravelDto\Attributes\BindModel|null $resolveModelAttribute */
-        $resolveModelAttribute = $resolveModelAttribute
-            ? $resolveModelAttribute->newInstance()
-            : new ResolveModel(morphTypeFrom: ResolveModel::getDefaultMorphKeyFrom($key));
+        /** @var \OpenSoutheners\LaravelDto\Attributes\ResolveModel|null $resolveModelAttribute */
+        $resolveModelAttribute = $resolveModelAttributeReflector
+            ? $resolveModelAttributeReflector->newInstance()
+            : new ResolveModel(morphTypeFrom: ResolveModel::getDefaultMorphKeyFrom($mappingValue->property->getName()));
 
-        /** @var array<string, string[]>|null $modelWithAttributes */
-        $modelWithAttributes = $attributes
-            ->filter(fn (ReflectionAttribute $reflection) => $reflection->getName() === ModelWith::class)
-            ->mapWithKeys(fn (ReflectionAttribute $reflection) => [$reflection->newInstance()->type => $reflection->newInstance()->relations])
-            ->toArray();
-            
-        $modelClass = Collection::make($types)
+        $modelClass = Collection::make($mappingValue->types ?? [$mappingValue->preferredTypeClass])
             ->map(fn (Type $type): string => $type->getClassName())
             ->filter(fn (string $typeClass): bool => is_a($typeClass, Model::class, true))
             ->unique()
             ->values()
             ->toArray();
-        
+
         $modelType = count($modelClass) === 1 ? reset($modelClass) : $modelClass;
         $valueClass = null;
 
-        if (is_object($value) && ! $value instanceof Collection) {
-            $valueClass = get_class($value);
-            $modelType = is_array($types) ? ($modelClass[$valueClass] ?? null) : $valueClass;
+        /** @var array<string, string[]>|null $modelWithAttributes */
+        $modelWithAttributes = $mappingValue->attributes
+            ->filter(fn (ReflectionAttribute $reflection) => $reflection->getName() === ModelWith::class)
+            ->mapWithKeys(fn (ReflectionAttribute $reflection) => [$reflection->newInstance()->type ?? $modelType => $reflection->newInstance()->relations])
+            ->toArray();
+
+        if (is_array($modelType) && $mappingValue->objectClass === Collection::class) {
+            $valueClass = get_class($mappingValue->data);
+            
+            $modelType = $modelClass[array_search($valueClass, $modelClass)];
         }
 
         if (
@@ -65,17 +65,17 @@ final class ModelPropertyMapper implements PropertyMapper
             || ($resolveModelAttribute && is_array($modelType))
         ) {
             $modelType = $resolveModelAttribute->getMorphModel(
-                $key,
-                $properties,
-                $types === Model::class ? [] : (array) $types
+                $mappingValue->property->getName(),
+                $mappingValue->class->getProperties(ReflectionProperty::IS_PUBLIC),
+                $mappingValue->types === Model::class ? [] : (array) $mappingValue->types
             );
         }
 
         if (! is_countable($modelType) || count($modelType) === 1) {
             return $this->resolveIntoModelInstance(
-                $value,
+                $mappingValue->data,
                 ! is_countable($modelType) ? $modelType : $modelType[0],
-                $key,
+                $mappingValue->property->getName(),
                 $modelWithAttributes,
                 $resolveModelAttribute
             );
@@ -89,10 +89,10 @@ final class ModelPropertyMapper implements PropertyMapper
 
                 return [$valueA, $valueB ?? $lastNonValue];
             },
-            $value instanceof Collection ? $value->all() : (array) $value,
+            $mappingValue->data instanceof Collection ? $mappingValue->data->all() : (array) $mappingValue->data,
             (array) $modelType
         ))->mapToGroups(fn (array $value) => [$value[1] => $value[0]])->flatMap(fn (Collection $keys, string $model) =>
-            $this->resolveIntoModelInstance($keys, $model, $key, $modelWithAttributes, $resolveModelAttribute)
+            $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute)
         );
     }
     

@@ -3,30 +3,27 @@
 namespace OpenSoutheners\LaravelDto\PropertyMappers;
 
 use BackedEnum;
-use Illuminate\Support\Collection;
-use Symfony\Component\PropertyInfo\Type;
+use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 
 final class BackedEnumPropertyMapper implements PropertyMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
      */
-    public function assert(Type $preferredType, mixed $value): bool
+    public function assert(MappingValue $mappingValue): bool
     {
-        return is_subclass_of($preferredType->getClassName(), BackedEnum::class);
+        return is_subclass_of($mappingValue->preferredTypeClass, BackedEnum::class);
     }
-    
+
     /**
      * Resolve mapper that runs once assert returns true.
-     *
-     * @param array<Type> $types
-     * @param Collection<\ReflectionAttribute> $attributes
      */
-    public function resolve(array $types, string $key, mixed $value, Collection $attributes, array $properties): mixed
+    public function resolve(MappingValue $mappingValue): mixed
     {
-        $preferredType = reset($types);
-        $preferredTypeClass = $preferredType->getClassName();
-        
-        return $preferredTypeClass::tryFrom($value) ?? (count($types) > 1 ? $value : null);
+        return $mappingValue->preferredTypeClass::tryFrom($mappingValue->data) ?? (
+            count($mappingValue->types) > 1
+                ? $mappingValue->data
+                : null
+        );
     }
 }

@@ -8,6 +8,8 @@ use Workbench\App\DataTransferObjects\UpdatePostWithRouteBindingData;
 use Workbench\Database\Factories\PostFactory;
 use Workbench\Database\Factories\TagFactory;
 
+use function OpenSoutheners\LaravelDto\map;
+
 class ValidatedDataTransferObjectTest extends TestCase
 {
     use RefreshDatabase;
@@ -58,7 +60,7 @@ class ValidatedDataTransferObjectTest extends TestCase
                     'slug' => $secondTag->slug,
                 ],
             ],
-            'published_at' => '2023-09-06T17:35:53.000000Z',
+            'publishedAt' => '2023-09-06T17:35:53.000000Z',
         ], true);
     }
 
@@ -68,12 +70,13 @@ class ValidatedDataTransferObjectTest extends TestCase
             TagFactory::new()->count(2)
         )->create();
 
-        $data = UpdatePostWithRouteBindingData::fromArray([
+        $data = map([
             'post' => $post,
-        ]);
+        ])->to(UpdatePostWithRouteBindingData::class);
 
         DB::enableQueryLog();
 
+        $this->assertTrue($data->post->relationLoaded('tags'));
         $this->assertNotEmpty($data->post->tags);
         $this->assertCount(2, $data->post->tags);
         $this->assertEmpty(DB::getQueryLog());
@@ -87,9 +90,9 @@ class ValidatedDataTransferObjectTest extends TestCase
 
         DB::enableQueryLog();
 
-        $data = UpdatePostWithRouteBindingData::fromArray([
+        $data = map([
             'post' => $post,
-        ]);
+        ])->to(UpdatePostWithRouteBindingData::class);
 
         $this->assertEmpty(DB::getQueryLog());
         $this->assertTrue($data->post->is($post));
@@ -104,12 +107,12 @@ class ValidatedDataTransferObjectTest extends TestCase
         TagFactory::new()->create();
         TagFactory::new()->create();
 
-        $data = UpdatePostWithRouteBindingData::fromArray([
+        $data = map([
             'post' => '1',
             'tags' => '1,2',
             'post_status' => 'test_non_existing_status',
             'published_at' => '2023-09-06 17:35:53',
-        ]);
+        ])->to(UpdatePostWithRouteBindingData::class);
 
         $serializedData = serialize($data);
 

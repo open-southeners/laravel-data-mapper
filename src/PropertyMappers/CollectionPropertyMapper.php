@@ -5,50 +5,55 @@ namespace OpenSoutheners\LaravelDto\PropertyMappers;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 use Symfony\Component\PropertyInfo\Type;
 
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
+use function OpenSoutheners\LaravelDto\map;
 
 final class CollectionPropertyMapper implements PropertyMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
      */
-    public function assert(Type $preferredType, mixed $value): bool
+    public function assert(MappingValue $mappingValue): bool
     {
-        return $preferredType->isCollection()
-            || $preferredType->getClassName() === Collection::class
-            || $preferredType->getClassName() === EloquentCollection::class;
+        return $mappingValue->preferredType?->isCollection()
+            || $mappingValue->preferredTypeClass === Collection::class
+            || $mappingValue->preferredTypeClass === EloquentCollection::class;
     }
     
     /**
      * Resolve mapper that runs once assert returns true.
      *
-     * @param array<Type> $types
+     * @param string[]|string $types
      * @param Collection<\ReflectionAttribute> $attributes
+     * @param array<string, mixed> $properties
      */
-    public function resolve(array $types, string $key, mixed $value, Collection $attributes, array $properties): mixed
+    public function resolve(MappingValue $mappingValue): mixed
     {
-        if ($value instanceof Collection) {
-            return $value instanceof EloquentCollection ? $value->toBase() : $value;
+        if ($mappingValue->objectClass === Collection::class) {
+            return $mappingValue->data instanceof EloquentCollection
+                ? $mappingValue->data->toBase()
+                : $mappingValue->data;
         }
 
-        $propertyType = reset($types);
+        $propertyType = reset($mappingValue->types);
 
         if (
-            count(array_filter($types, fn (Type $type) => $type->getBuiltinType() === Type::BUILTIN_TYPE_STRING)) > 0
-            && ! str_contains($value, ',')
+            count(array_filter($mappingValue->types, fn (Type $type) => $type->getBuiltinType() === Type::BUILTIN_TYPE_STRING)) > 0
+            && ! str_contains($mappingValue->types, ',')
         ) {
-            return $value;
+            return $mappingValue->data;
         }
 
-        if (is_json_structure($value)) {
-            $collection = Collection::make(json_decode($value, true));
+        if (is_json_structure($mappingValue->data)) {
+            $collection = Collection::make(json_decode($mappingValue->data, true));
         } else {
             $collection = Collection::make(
-                is_array($value)
-                    ? $value
-                    : explode(',', $value)
+                is_array($mappingValue->data)
+                    ? $mappingValue->data
+                    : explode(',', $mappingValue->data)
             );
         }
 
@@ -62,23 +67,10 @@ final class CollectionPropertyMapper implements PropertyMapper
 
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
-                $collectionTypeModelClasses = array_filter(
-                    array_map(fn (Type $type) => $type->getClassName(), $collectionTypes),
-                    fn ($typeClass) => is_a($typeClass, Model::class, true)
-                );
-
-                $collection = (new ModelPropertyMapper())->resolve(
-                    $collectionTypeModelClasses,
-                    $key,
-                    $collection,
-                    $attributes,
-                    $properties
-                );
+                $collection = map($mappingValue->data)->to($preferredCollectionTypeClass);
             } else {
                 $collection = $collection->map(
-                    fn ($item) => is_array($item)
-                        ? new $preferredCollectionTypeClass(...$item)
-                        : new $preferredCollectionTypeClass($item)
+                    fn ($item) => map($item)->to($preferredCollectionTypeClass)
                 );
             }
         }

@@ -2,16 +2,30 @@
 
 namespace OpenSoutheners\LaravelDto;
 
-use Illuminate\Contracts\Auth\Authenticatable;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use OpenSoutheners\LaravelDto\Attributes\Validate;
 use OpenSoutheners\LaravelDto\Commands\DtoMakeCommand;
 use OpenSoutheners\LaravelDto\Commands\DtoTypescriptGenerateCommand;
-use OpenSoutheners\LaravelDto\Contracts\ValidatedDataTransferObject;
+use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
 use OpenSoutheners\LaravelDto\PropertyMappers;
+use OpenSoutheners\LaravelDto\PropertyMappers\PropertyMapper;
+use ReflectionClass;
 
 class ServiceProvider extends BaseServiceProvider
 {
+    protected static $mappers = [
+        PropertyMappers\CollectionPropertyMapper::class,
+        PropertyMappers\ModelPropertyMapper::class,
+        
+        PropertyMappers\CarbonPropertyMapper::class,
+        PropertyMappers\BackedEnumPropertyMapper::class,
+        PropertyMappers\GenericObjectPropertyMapper::class,
+        PropertyMappers\ObjectPropertyMapper::class,
+        
+    ];
+    
     /**
      * Bootstrap any application services.
      *
@@ -26,27 +40,23 @@ class ServiceProvider extends BaseServiceProvider
 
             $this->commands([DtoMakeCommand::class, DtoTypescriptGenerateCommand::class]);
         }
-
-        ObjectMapper::registerMapper([
-            new PropertyMappers\ModelPropertyMapper,
-            new PropertyMappers\CollectionPropertyMapper,
-            new PropertyMappers\ObjectPropertyMapper,
-            new PropertyMappers\GenericObjectPropertyMapper,
-            new PropertyMappers\CarbonPropertyMapper,
-            new PropertyMappers\BackedEnumPropertyMapper,
-        ]);
-
-        $this->app->bind(Authenticatable::class, fn ($app) => $app->get('auth')->user());
         
-        // $this->app->beforeResolving(
-        //     DataTransferObject::class,
-        //     function ($dataClass, $parameters, $app) {
-        //         /** @var \Illuminate\Foundation\Application $app */
-        //         $app->scoped($dataClass, fn () => $dataClass::fromRequest(
-        //             app(is_subclass_of($dataClass, ValidatedDataTransferObject::class) ? $dataClass::request() : Request::class)
-        //         ));
-        //     }
-        // );
+        $this->app->beforeResolving(
+            DataTransferObject::class,
+            function ($dataClass, $parameters, $app) {
+                /** @var \Illuminate\Foundation\Application $app */
+                $app->scoped($dataClass, function () use ($dataClass, $app) {
+                    $reflector = new ReflectionClass($dataClass);
+                    
+                    $validateAttributes = $reflector->getAttributes(Validate::class);
+                    $validateAttribute = reset($validateAttributes);
+                    
+                    return map(
+                        $app->make($validateAttribute ? $validateAttribute->newInstance()->value : Request::class)
+                    )->to($dataClass);
+                });
+            }
+        );
     }
 
     /**
@@ -57,5 +67,35 @@ class ServiceProvider extends BaseServiceProvider
     public function register()
     {
         //
+    }
+    
+    /**
+     * Register new dynamic mappers.
+     */
+    public function registerMapper(string|array $mapper, bool $replacing = false): void
+    {
+        $mappers = (array) $mapper;
+        
+        static::$mappers = $replacing ? $mappers : array_merge(static::$mappers, $mapper);
+    }
+    
+    /**
+     * Get dynamic mappers.
+     *
+     * @return array<PropertyMapper>
+     */
+    public static function getMappers(): array
+    {
+        $mappers = [];
+        
+        foreach (static::$mappers as $mapper) {
+            $mapperInstance = new $mapper;
+            
+            if ($mapperInstance instanceof PropertyMapper) {
+                $mappers[] = $mapperInstance;
+            }
+        }
+        
+        return $mappers;
     }
 }

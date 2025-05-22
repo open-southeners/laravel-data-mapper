@@ -2,6 +2,7 @@
 
 namespace OpenSoutheners\LaravelDto;
 
+use Illuminate\Contracts\Container\ContextualAttribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -90,69 +91,63 @@ class ObjectMapper
                 continue;
             }
 
-            $preferredType = reset($propertyTypes);
-            $propertyTypesClasses = array_filter(array_map(fn (Type $type) => $type->getClassName(), $propertyTypes));
-            // TODO: for models
-            $propertyTypesModelClasses = array_filter($propertyTypesClasses, fn ($typeClass) => is_a($typeClass, Model::class, true));
-            $preferredTypeClass = $preferredType->getClassName();
-
             /** @var \Illuminate\Support\Collection<\ReflectionAttribute> $propertyAttributes */
             $propertyAttributes = Collection::make(
                 $this->reflector->getProperty($key)->getAttributes()
             );
 
-            $propertyAttributesDefaultValue = $propertyAttributes->filter(
-                fn (ReflectionAttribute $attribute) => $attribute->getName() === WithDefaultValue::class
-            )->first();
-
-            $defaultValue = null;
-
-            if (! $value && $propertyAttributesDefaultValue) {
-                $defaultValue = $propertyAttributesDefaultValue->newInstance()->value;
-            }
-
-            $injectAttribute = $propertyAttributes->filter(
-                fn (ReflectionAttribute $attribute) => $attribute->getName() === Inject::class
+            $containerAttribute = $propertyAttributes->filter(
+                fn (ReflectionAttribute $attribute) => is_subclass_of($attribute->getName(), ContextualAttribute::class)
             )->first();
             
-            if ($injectAttribute) {
-                $this->data[$key] = app($injectAttribute->newInstance()->value);
-
+            if ($containerAttribute) {
+                $this->data[$key] = app()->resolveFromAttribute($containerAttribute);
+                
                 continue;
             }
-
-            $value ??= $defaultValue;
 
             if (is_null($value)) {
                 continue;
             }
 
+            $preferredType = reset($propertyTypes);
+            $propertyTypesClasses = array_filter(array_map(fn (Type $type) => $type->getClassName(), $propertyTypes));
+            $preferredTypeClass = $preferredType->getClassName();
+            
             if (
-                $preferredTypeClass
-                && ! is_array($value)
-                && ! $preferredType->isCollection()
-                && $preferredTypeClass !== Collection::class
-                && ! is_a($preferredTypeClass, Model::class, true)
-                && (is_a($value, $preferredTypeClass, true)
-                    || (is_object($value) && in_array(get_class($value), $propertyTypesClasses)))
+                count(static::$mappers) === 0
+                    || ($preferredTypeClass
+                        && ! is_array($value)
+                        && ! $preferredType->isCollection()
+                        && $preferredTypeClass !== Collection::class
+                        && ! is_a($preferredTypeClass, Model::class, true)
+                        && (is_a($value, $preferredTypeClass, true)
+                            || (is_object($value) && in_array(get_class($value), $propertyTypesClasses))))
             ) {
                 $this->data[$key] = $value;
 
                 continue;
             }
-
-            foreach (static::$mappers as $mapper) {
-                if ($mapper->assert($preferredType, $value)) {
-                    $this->data[$key] = $mapper->resolve($propertyTypes, $key, $value, $propertyAttributes, $this->properties);
-                    
-                    break;
-                }
-                
-                $this->data[$key] = $value;
-            }
+            
+            $this->data[$key] = map($value)->to($preferredTypeClass);
         }
 
         return $this->data;
+    }
+    
+    public function mapFromType(string $key, Type $preferredType, mixed $value, array $types, Collection $attributes): mixed
+    {
+        $mappedValue = $value;
+        
+        foreach (static::$mappers as $mapper) {
+            if ($mapper->assert($preferredType, $value)) {
+                $mappedValue = $mapper->resolve($types, $key, $value, $attributes, $this->properties);
+                
+                break;
+            }
+        }
+        
+        return $mappedValue;
     }
 
     /**

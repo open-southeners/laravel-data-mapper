@@ -3,10 +3,10 @@
 namespace Workbench\App\DataTransferObjects;
 
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\DataTransferObject;
+use OpenSoutheners\LaravelDto\Contracts\DataTransferObject;
 use Workbench\App\Models\Post;
 
-class UpdatePostWithTags extends DataTransferObject
+class UpdatePostWithTags implements DataTransferObject
 {
     public function __construct(
         public Post $post,

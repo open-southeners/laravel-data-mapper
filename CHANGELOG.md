@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2025-05-20
+
+### Added
+
+- Attribute `OpenSoutheners\LaravelDto\Attributes\Inject` to inject container stuff
+- Attribute `OpenSoutheners\LaravelDto\Attributes\Authenticated` that uses base `Illuminate\Container\Attributes\Authenticated` to inject current authenticated user
+- Ability to register custom mappers (extending package functionality)
+
+### Removed
+
+- Abstract class `OpenSoutheners\LaravelDto\DataTransferObject` (using POPO which means _Plain Old Php Objects_)
+- Attribute `OpenSoutheners\LaravelDto\Attributes\WithDefaultValue` (when using with `Illuminate\Contracts\Auth\Authenticatable` can be replaced by `OpenSoutheners\LaravelDto\Attributes\Authenticated`)
+
 ## [3.7.0] - 2025-03-04
 
 ### Added
