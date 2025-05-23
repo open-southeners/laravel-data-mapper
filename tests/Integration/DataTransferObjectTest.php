@@ -239,7 +239,7 @@ class DataTransferObjectTest extends TestCase
 
         $response = $this->patchJson('tags/1', [
             'name' => 'Scary',
-            'taggable' => '1, 1, 2',
+            'taggable' => Collection::make([$myFilm->getKey(), $fooBarPost->getKey(), $helloWorldPost->getKey()])->join(', '),
             // TODO: Fix mapping by slug
             // 'taggable' => '1, foo-bar, hello-world',
             'taggable_type' => 'film, post',

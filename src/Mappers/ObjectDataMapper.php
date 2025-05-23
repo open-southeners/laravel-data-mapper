@@ -101,7 +101,7 @@ final class ObjectDataMapper implements DataMapper
             }
 
             $data[$key] = map($value)
-                ->through($mappingValue->preferredTypeClass, $key, $propertyTypes)
+                ->through($mappingValue, $key, $propertyTypes)
                 ->to($preferredTypeClass);
         }
 

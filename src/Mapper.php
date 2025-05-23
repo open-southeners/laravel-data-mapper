@@ -2,6 +2,7 @@
 
 namespace OpenSoutheners\LaravelDto;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -16,11 +17,13 @@ final class Mapper
 
     protected ?string $dataClass = null;
 
-    protected ?string $parentClass = null;
+    protected ?MappingValue $fromMappingValue = null;
 
     protected ?string $property = null;
 
     protected array $propertyTypes = [];
+    
+    protected bool $runningFromMapper = false;
 
     public function __construct(mixed $input)
     {
@@ -52,18 +55,26 @@ final class Mapper
                 $input instanceof FormRequest ? $input->validated() : $input->all()
             ),
             $input instanceof Collection => $input->all(),
+            $input instanceof Model => $input,
             is_object($input) => $this->extractProperties($input),
             default => $input,
         };
     }
 
-    public function through(string|object $value, string $property, array $types): static
+    /**
+     * @param  array<\Symfony\Component\PropertyInfo\Type>  $types
+     *
+     * @internal
+     */
+    public function through(MappingValue $mappingValue, string $property, array $types): static
     {
-        $this->parentClass = is_object($value) ? get_class($value) : $value;
+        $this->fromMappingValue = $mappingValue;
 
         $this->property = $property;
 
         $this->propertyTypes = $types;
+        
+        $this->runningFromMapper = true;
 
         return $this;
     }
@@ -96,16 +107,20 @@ final class Mapper
 
         $mappedValue = $this->data;
 
-        $reflectionClass = $this->parentClass || $output ? new ReflectionClass($this->parentClass ?: $output) : null;
-        $reflectionProperty = $reflectionClass && $this->property ? $reflectionClass->getProperty($this->property) : null;
+        if (is_array($mappedValue)) {
+            $reflectionClass = $this->fromMappingValue?->class ?? $output ? new ReflectionClass($output) : null;
+        } else {
+            $reflectionClass = $output ? new ReflectionClass($output) : null;
+        }
 
         $mappingDataValue = new MappingValue(
             data: $this->data,
+            allMappingData: ($this->runningFromMapper ? $this->fromMappingValue?->allMappingData : $this->data) ?? [],
             typeFromData: BuiltInType::guess($this->data),
             types: $this->propertyTypes,
             objectClass: $output,
             class: $reflectionClass,
-            property: $reflectionProperty,
+            property: $this->fromMappingValue?->property ?? ($this->property ? $reflectionClass->getProperty($this->property) : null)
         );
 
         foreach (ServiceProvider::getMappers() as $mapper) {

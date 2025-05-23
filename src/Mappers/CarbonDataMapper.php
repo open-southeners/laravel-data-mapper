@@ -30,8 +30,8 @@ final class CarbonDataMapper implements DataMapper
             default => Carbon::make($mappingValue->data),
         };
 
-        if ($mappingValue->preferredType === CarbonImmutable::class) {
-            $dateValue->toImmutable();
+        if ($mappingValue->preferredTypeClass === CarbonImmutable::class) {
+            $dateValue = $dateValue->toImmutable();
         }
 
         return $dateValue;

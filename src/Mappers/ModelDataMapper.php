@@ -28,6 +28,12 @@ final class ModelDataMapper implements DataMapper
      */
     public function resolve(MappingValue $mappingValue): mixed
     {
+        $data = $mappingValue->data;
+        
+        if (is_string($data) && str_contains($data, ',')) {
+            $data = array_filter(explode(',', $data));
+        }
+        
         $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
 
         /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
@@ -55,7 +61,7 @@ final class ModelDataMapper implements DataMapper
             ->toArray();
 
         if (is_array($modelType) && $mappingValue->objectClass === Collection::class) {
-            $valueClass = get_class($mappingValue->data);
+            $valueClass = get_class($data);
 
             $modelType = $modelClass[array_search($valueClass, $modelClass)];
         }
@@ -66,14 +72,14 @@ final class ModelDataMapper implements DataMapper
         ) {
             $modelType = $resolveModelAttribute->getMorphModel(
                 $mappingValue->property->getName(),
-                $mappingValue->class->getProperties(ReflectionProperty::IS_PUBLIC),
+                $mappingValue->allMappingData,
                 $mappingValue->types === Model::class ? [] : (array) $mappingValue->types
             );
         }
 
         if (! is_countable($modelType) || count($modelType) === 1) {
             return $this->resolveIntoModelInstance(
-                $mappingValue->data,
+                $data,
                 ! is_countable($modelType) ? $modelType : $modelType[0],
                 $mappingValue->property->getName(),
                 $modelWithAttributes,
@@ -81,18 +87,21 @@ final class ModelDataMapper implements DataMapper
             );
         }
 
-        return Collection::make(array_map(
-            function (mixed $valueA, mixed $valueB) use (&$lastNonValue): array {
-                if (! is_null($valueB)) {
-                    $lastNonValue = $valueB;
-                }
-
-                return [$valueA, $valueB ?? $lastNonValue];
-            },
-            $mappingValue->data instanceof Collection ? $mappingValue->data->all() : (array) $mappingValue->data,
-            (array) $modelType
-        ))->mapToGroups(fn (array $value) => [$value[1] => $value[0]])->flatMap(fn (Collection $keys, string $model) => $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute)
-        );
+        return Collection::make(
+            array_map(
+                function (mixed $valueA, mixed $valueB) use (&$lastNonValue): array {
+                    if (! is_null($valueB)) {
+                        $lastNonValue = $valueB;
+                    }
+    
+                    return [$valueA, $valueB ?? $lastNonValue];
+                },
+                $data,
+                (array) $modelType
+            )
+        )
+        ->mapToGroups(fn (array $value) => [$value[1] => $value[0]])
+        ->flatMap(fn (Collection $keys, string $model) => $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute));
     }
 
     /**

@@ -28,6 +28,7 @@ final class MappingValue
      */
     public function __construct(
         public readonly mixed $data,
+        public readonly array $allMappingData,
         public readonly BuiltInType $typeFromData,
         public readonly ?string $objectClass = null,
         public readonly ?array $types = null,
@@ -38,6 +39,10 @@ final class MappingValue
 
         $this->preferredTypeClass = $this->preferredType ? ($this->preferredType->getClassName() ?: $objectClass) : $objectClass;
 
-        $this->attributes = Collection::make($class ? $class->getAttributes() : []);
+        if ($property) {
+            $this->attributes = Collection::make($property->getAttributes());
+        } else {
+            $this->attributes = Collection::make($class ? $class->getAttributes() : []);
+        }
     }
 }

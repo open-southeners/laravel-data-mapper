@@ -35,10 +35,10 @@ final class CollectionDataMapper implements DataMapper
         if ($mappingValue->objectClass === EloquentCollection::class) {
             return $mappingValue->data->toBase();
         }
-        
+
         if (
             count(array_filter($mappingValue->types, fn (Type $type) => $type->getBuiltinType() === Type::BUILTIN_TYPE_STRING)) > 0
-            && ! str_contains($mappingValue->types, ',')
+            && ! str_contains($mappingValue->data, ',')
         ) {
             return $mappingValue->data;
         }
@@ -59,10 +59,15 @@ final class CollectionDataMapper implements DataMapper
 
         if ($preferredCollectionType && $preferredCollectionType->getBuiltinType() === Type::BUILTIN_TYPE_OBJECT) {
             if (is_subclass_of($preferredCollectionTypeClass, Model::class)) {
-                $collection = map($mappingValue->data)->to($preferredCollectionTypeClass);
+                $collection = map($mappingValue->data)
+                    ->through($mappingValue, $mappingValue->property->getName(), $collectionTypes)
+                    ->to($preferredCollectionTypeClass);
             } else {
+                dump($mappingValue->property->getName().' => '.$mappingValue->class->getName());
                 $collection = $collection->map(
-                    fn ($item) => map($item)->to($preferredCollectionTypeClass)
+                    fn ($item) => map($item)
+                        ->through($mappingValue, $mappingValue->property->getName(), $collectionTypes)
+                        ->to($preferredCollectionTypeClass)
                 );
             }
         }

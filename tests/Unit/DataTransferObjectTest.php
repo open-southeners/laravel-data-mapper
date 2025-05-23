@@ -2,15 +2,8 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Unit;
 
-use Illuminate\Auth\AuthManager;
-use Illuminate\Config\Repository;
-use Illuminate\Container\Container;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Mockery;
-use OpenSoutheners\LaravelDto\Mappers;
-use OpenSoutheners\LaravelDto\ServiceProvider;
-use PHPUnit\Framework\TestCase;
 use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
 use Workbench\App\DataTransferObjects\CreatePostData;
@@ -18,38 +11,8 @@ use Workbench\App\Enums\PostStatus;
 
 use function OpenSoutheners\LaravelDto\map;
 
-class DataTransferObjectTest extends TestCase
+class DataTransferObjectTest extends UnitTestCase
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        ServiceProvider::registerMapper([
-            Mappers\CollectionDataMapper::class,
-            Mappers\ModelDataMapper::class,
-    
-            Mappers\CarbonDataMapper::class,
-            Mappers\BackedEnumDataMapper::class,
-            Mappers\GenericObjectDataMapper::class,
-            Mappers\ObjectDataMapper::class,
-        ]);
-
-        $mockedConfig = Mockery::mock(Repository::class);
-
-        $mockedConfig->shouldReceive('get')->andReturn(true);
-
-        Container::getInstance()->bind('config', fn () => $mockedConfig);
-
-        $mockedAuth = Mockery::mock(AuthManager::class);
-
-        $mockedAuth->shouldReceive('check')->andReturn(false);
-        $mockedAuth->shouldReceive('userResolver')->andReturn(fn () => null);
-
-        Container::getInstance()->bind('auth', fn () => $mockedAuth);
-
-        Container::getInstance()->bind('dto.context.booted', fn () => '');
-    }
-
     public function test_data_transfer_object_from_array()
     {
         $data = map([

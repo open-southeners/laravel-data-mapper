@@ -80,6 +80,7 @@ final class ResolveModel
         }
 
         $morphMap = Relation::morphMap();
+        
         $modelModelClass = array_filter(
             array_map(
                 fn (string $morphType) => $morphMap[$morphType] ?? null,
