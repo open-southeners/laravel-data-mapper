@@ -2,8 +2,13 @@
 
 namespace OpenSoutheners\LaravelDto\Mappers;
 
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection as DatabaseCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Attributes\ModelWith;
 use OpenSoutheners\LaravelDto\Attributes\ResolveModel;
@@ -12,7 +17,9 @@ use ReflectionAttribute;
 use ReflectionProperty;
 use Symfony\Component\PropertyInfo\Type;
 
-final class ModelDataMapper implements DataMapper
+use function OpenSoutheners\LaravelDto\map;
+
+final class ModelDataMapper extends DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
@@ -26,82 +33,115 @@ final class ModelDataMapper implements DataMapper
     /**
      * Resolve mapper that runs once assert returns true.
      */
-    public function resolve(MappingValue $mappingValue): mixed
+    public function resolve(MappingValue $mappingValue): void
     {
-        $data = $mappingValue->data;
-        
-        if (is_string($data) && str_contains($data, ',')) {
-            $data = array_filter(explode(',', $data));
+        if (is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data)) {
+            /** @var Model $modelInstance */
+            $modelInstance = new $mappingValue->preferredTypeClass;
+            
+            foreach ($mappingValue->data as $key => $value) {
+                if ($modelInstance->isRelation($key) && $modelInstance->$key() instanceof BelongsTo) {
+                    $modelInstance->$key()->associate($value);
+                    
+                    continue;
+                }
+                
+                if ($modelInstance->isRelation($key) && $modelInstance->$key() instanceof HasMany) {
+                    $modelInstance->setRelation($key, map($value)->to(get_class($modelInstance->$key()->getModel())));
+                    
+                    continue;
+                }
+
+                $modelInstance->fill([$key => $value]);
+            }
+            
+            $mappingValue->data = $modelInstance;
+            
+            return;
         }
         
-        $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
-
-        /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
-        $resolveModelAttributeReflector = reset($resolveModelAttributeReflector);
-
-        /** @var \OpenSoutheners\LaravelDto\Attributes\ResolveModel|null $resolveModelAttribute */
-        $resolveModelAttribute = $resolveModelAttributeReflector
-            ? $resolveModelAttributeReflector->newInstance()
-            : new ResolveModel(morphTypeFrom: ResolveModel::getDefaultMorphKeyFrom($mappingValue->property->getName()));
-
-        $modelClass = Collection::make($mappingValue->types ?? [$mappingValue->preferredTypeClass])
-            ->map(fn (Type $type): string => $type->getClassName())
-            ->filter(fn (string $typeClass): bool => is_a($typeClass, Model::class, true))
-            ->unique()
-            ->values()
-            ->toArray();
-
-        $modelType = count($modelClass) === 1 ? reset($modelClass) : $modelClass;
-        $valueClass = null;
-
-        /** @var array<string, string[]>|null $modelWithAttributes */
-        $modelWithAttributes = $mappingValue->attributes
-            ->filter(fn (ReflectionAttribute $reflection) => $reflection->getName() === ModelWith::class)
-            ->mapWithKeys(fn (ReflectionAttribute $reflection) => [$reflection->newInstance()->type ?? $modelType => $reflection->newInstance()->relations])
-            ->toArray();
-
-        if (is_array($modelType) && $mappingValue->objectClass === Collection::class) {
-            $valueClass = get_class($data);
-
-            $modelType = $modelClass[array_search($valueClass, $modelClass)];
+        if (is_string($mappingValue->data) && str_contains($mappingValue->data, ',')) {
+            $mappingValue->data = array_filter(explode(',', $mappingValue->data));
         }
-
-        if (
-            (! is_array($modelType) && $modelType === Model::class)
-            || ($resolveModelAttribute && is_array($modelType))
-        ) {
-            $modelType = $resolveModelAttribute->getMorphModel(
-                $mappingValue->property->getName(),
-                $mappingValue->allMappingData,
-                $mappingValue->types === Model::class ? [] : (array) $mappingValue->types
-            );
+        
+        if (count($mappingValue->types) <= 1) {
+            $mappingValue->data = $this->resolveIntoModelInstance($mappingValue->data, $mappingValue->preferredTypeClass);
         }
-
-        if (! is_countable($modelType) || count($modelType) === 1) {
-            return $this->resolveIntoModelInstance(
-                $data,
-                ! is_countable($modelType) ? $modelType : $modelType[0],
-                $mappingValue->property->getName(),
-                $modelWithAttributes,
-                $resolveModelAttribute
-            );
+        
+        if ($mappingValue->collectClass === Collection::class) {
+            $mappingValue->data = $mappingValue->data instanceof DatabaseCollection
+                ? $mappingValue->data->toBase()
+                : Collection::make($mappingValue->data);
         }
+        
+        // $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
 
-        return Collection::make(
-            array_map(
-                function (mixed $valueA, mixed $valueB) use (&$lastNonValue): array {
-                    if (! is_null($valueB)) {
-                        $lastNonValue = $valueB;
-                    }
+        // /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
+        // $resolveModelAttributeReflector = reset($resolveModelAttributeReflector);
+
+        // /** @var \OpenSoutheners\LaravelDto\Attributes\ResolveModel|null $resolveModelAttribute */
+        // $resolveModelAttribute = $resolveModelAttributeReflector
+        //     ? $resolveModelAttributeReflector->newInstance()
+        //     : new ResolveModel(morphTypeFrom: ResolveModel::getDefaultMorphKeyFrom($mappingValue->property->getName()));
+
+        // $modelClass = Collection::make($mappingValue->types ?? [$mappingValue->preferredTypeClass])
+        //     ->map(fn (Type $type): string => $type->getClassName())
+        //     ->filter(fn (string $typeClass): bool => is_a($typeClass, Model::class, true))
+        //     ->unique()
+        //     ->values()
+        //     ->toArray();
+
+        // $modelType = count($modelClass) === 1 ? reset($modelClass) : $modelClass;
+        // $valueClass = null;
+
+        // /** @var array<string, string[]>|null $modelWithAttributes */
+        // $modelWithAttributes = $mappingValue->attributes
+        //     ->filter(fn (ReflectionAttribute $reflection) => $reflection->getName() === ModelWith::class)
+        //     ->mapWithKeys(fn (ReflectionAttribute $reflection) => [$reflection->newInstance()->type ?? $modelType => $reflection->newInstance()->relations])
+        //     ->toArray();
+
+        // if (is_array($modelType) && $mappingValue->objectClass === Collection::class) {
+        //     $valueClass = get_class($data);
+
+        //     $modelType = $modelClass[array_search($valueClass, $modelClass)];
+        // }
+
+        // if (
+        //     (! is_array($modelType) && $modelType === Model::class)
+        //     || ($resolveModelAttribute && is_array($modelType))
+        // ) {
+        //     $modelType = $resolveModelAttribute->getMorphModel(
+        //         $mappingValue->property->getName(),
+        //         $mappingValue->allMappingData,
+        //         $mappingValue->types === Model::class ? [] : (array) $mappingValue->types
+        //     );
+        // }
+
+        // if (! is_countable($modelType) || count($modelType) === 1) {
+        //     return $this->resolveIntoModelInstance(
+        //         $data,
+        //         ! is_countable($modelType) ? $modelType : $modelType[0],
+        //         $mappingValue->property->getName(),
+        //         $modelWithAttributes,
+        //         $resolveModelAttribute
+        //     );
+        // }
+
+        // return Collection::make(
+        //     array_map(
+        //         function (mixed $valueA, mixed $valueB) use (&$lastNonValue): array {
+        //             if (! is_null($valueB)) {
+        //                 $lastNonValue = $valueB;
+        //             }
     
-                    return [$valueA, $valueB ?? $lastNonValue];
-                },
-                $data,
-                (array) $modelType
-            )
-        )
-        ->mapToGroups(fn (array $value) => [$value[1] => $value[0]])
-        ->flatMap(fn (Collection $keys, string $model) => $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute));
+        //             return [$valueA, $valueB ?? $lastNonValue];
+        //         },
+        //         $data,
+        //         (array) $modelType
+        //     )
+        // )
+        // ->mapToGroups(fn (array $value) => [$value[1] => $value[0]])
+        // ->flatMap(fn (Collection $keys, string $model) => $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute));
     }
 
     /**
@@ -143,12 +183,12 @@ final class ModelDataMapper implements DataMapper
      *
      * @param  array<string, string[]>  $withAttributes
      */
-    protected function resolveIntoModelInstance(mixed $keys, string $modelClass, string $propertyKey, array $withAttributes = [], ?ResolveModel $bindingAttribute = null): mixed
+    protected function resolveIntoModelInstance(mixed $keys, string $modelClass, ?string $propertyKey = null, array $withAttributes = [], ?ResolveModel $bindingAttribute = null): mixed
     {
         $usingAttribute = null;
         $with = [];
 
-        if ($bindingAttribute) {
+        if ($bindingAttribute && $propertyKey) {
             $with = $withAttributes[$modelClass] ?? [];
             $usingAttribute = $bindingAttribute->getBindingAttribute($propertyKey, $modelClass, $with);
         }

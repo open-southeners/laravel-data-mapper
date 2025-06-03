@@ -53,6 +53,9 @@ class ServiceProvider extends BaseServiceProvider
                 });
             }
         );
+        
+        $this->app->instance(PropertyInfoExtractor::class, new PropertyInfoExtractor());
+        $this->app->alias(PropertyInfoExtractor::class, 'propertyInfo');
     }
 
     /**
@@ -78,20 +81,21 @@ class ServiceProvider extends BaseServiceProvider
     /**
      * Get dynamic mappers.
      *
-     * @return array<PropertyMapper>
+     * @return array<class-string<DataMapper>>
      */
     public static function getMappers(): array
     {
-        $mappers = [];
+        return static::$mappers;
+        // $mappers = [];
 
-        foreach (static::$mappers as $mapper) {
-            $mapperInstance = new $mapper;
+        // foreach (static::$mappers as $mapper) {
+        //     $mapperInstance = new $mapper;
 
-            if ($mapperInstance instanceof Mappers\DataMapper) {
-                $mappers[] = $mapperInstance;
-            }
-        }
+        //     if ($mapperInstance instanceof Mappers\DataMapper) {
+        //         $mappers[] = $mapperInstance;
+        //     }
+        // }
 
-        return $mappers;
+        // return $mappers;
     }
 }

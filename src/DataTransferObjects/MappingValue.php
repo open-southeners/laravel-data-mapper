@@ -3,10 +3,7 @@
 namespace OpenSoutheners\LaravelDto\DataTransferObjects;
 
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Enums\BuiltInType;
-use ReflectionClass;
-use ReflectionProperty;
-use Symfony\Component\PropertyInfo\Type;
+use Symfony\Component\TypeInfo\Type;
 
 final class MappingValue
 {
@@ -24,25 +21,26 @@ final class MappingValue
 
     /**
      * @param  class-string|null  $objectClass
+     * @param  class-string|null  $collectClass
      * @param  array<Type>|null  $types
      */
     public function __construct(
-        public readonly mixed $data,
+        public mixed $data,
         public readonly array $allMappingData,
-        public readonly BuiltInType $typeFromData,
+        
         public readonly ?string $objectClass = null,
+        public readonly ?string $collectClass = null,
+        
         public readonly ?array $types = null,
-        public readonly ?ReflectionClass $class = null,
-        public readonly ?ReflectionProperty $property = null,
     ) {
         $this->preferredType = $types ? (reset($types) ?? null) : null;
 
         $this->preferredTypeClass = $this->preferredType ? ($this->preferredType->getClassName() ?: $objectClass) : $objectClass;
 
-        if ($property) {
-            $this->attributes = Collection::make($property->getAttributes());
-        } else {
-            $this->attributes = Collection::make($class ? $class->getAttributes() : []);
-        }
+        // if ($property) {
+        //     $this->attributes = Collection::make($property->getAttributes());
+        // } else {
+        //     $this->attributes = Collection::make($class ? $class->getAttributes() : []);
+        // }
     }
 }

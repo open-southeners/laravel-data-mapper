@@ -2,7 +2,12 @@
 
 namespace OpenSoutheners\LaravelDto\Tests\Unit;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection as DatabaseCollection;
+use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\Tests\Integration\TestCase;
+use stdClass;
+use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\User;
 use Workbench\Database\Factories\UserFactory;
 
@@ -18,5 +23,109 @@ class MapperTest extends TestCase
         
         $this->assertInstanceOf(User::class, $result);
         $this->assertEquals($user->email, $result->email);
+    }
+    
+    public function testMapMultipleNumericIdsToModelResultsInCollectionOfModelInstances()
+    {
+        $users = UserFactory::new()->count(2)->create();
+        
+        $result = map('1, 2')->to(User::class);
+        
+        $this->assertInstanceOf(DatabaseCollection::class, $result);
+        $this->assertEquals($users->first()->email, $result->first()->email);
+        $this->assertEquals($users->last()->email, $result->last()->email);
+    }
+    
+    public function testMapMultipleNumericIdsAsArgsToModelResultsInCollectionOfModelInstances()
+    {
+        $users = UserFactory::new()->count(2)->create();
+        
+        $result = map(1, 2)->to(User::class);
+        
+        $this->assertInstanceOf(DatabaseCollection::class, $result);
+        $this->assertEquals($users->first()->email, $result->first()->email);
+        $this->assertEquals($users->last()->email, $result->last()->email);
+    }
+    
+    public function testMapMultipleNumericIdsToModelThroughBaseCollectionResultsInBaseCollectionOfModelInstances()
+    {
+        $users = UserFactory::new()->count(2)->create();
+        
+        $result = map('1, 2')->through(Collection::class)->to(User::class);
+        
+        $this->assertTrue(get_class($result) === Collection::class);
+        $this->assertEquals($users->first()->email, $result->first()->email);
+        $this->assertEquals($users->last()->email, $result->last()->email);
+    }
+    
+    public function testMapNumericTimestampToCarbonResultsInCarbonInstance()
+    {
+        $timestamp = 1747939147;
+        $result = map($timestamp)->to(Carbon::class);
+        
+        $this->assertTrue(get_class($result) === \Illuminate\Support\Carbon::class);
+        $this->assertEquals($timestamp, $result->timestamp);
+    }
+    
+    public function testMapMultipleNumericTimestampsToCarbonResultsInCollectionOfCarbonInstances()
+    {
+        $timestamps = [1747939147, 1757939147];
+        
+        $result = map($timestamps)->through(Collection::class)->to(Carbon::class);
+        
+        $this->assertTrue(get_class($result) === Collection::class);
+        $this->assertEquals(head($timestamps), $result->first()->timestamp);
+        $this->assertEquals(last($timestamps), $result->last()->timestamp);
+    }
+    
+    public function testMapMultipleNumericCsvTimestampsToCarbonResultsInCollectionOfCarbonInstances()
+    {
+        $timestamps = [1747939147, 1757939147];
+        
+        $result = map(implode(',', $timestamps))->through(Collection::class)->to(Carbon::class);
+        
+        $this->assertTrue(get_class($result) === Collection::class);
+        $this->assertEquals(head($timestamps), $result->first()->timestamp);
+        $this->assertEquals(last($timestamps), $result->last()->timestamp);
+    }
+    
+    public function testMapArrayToGenericObjectResultsInStdClassInstance()
+    {
+        $input = ['hello' => 'world', 'foo' => 'bar'];
+        
+        $result = map($input)->to(stdClass::class);
+        
+        $this->assertTrue(get_class($result) === stdClass::class);
+        $this->assertEquals($input['hello'], $result->hello);
+        $this->assertEquals($input['foo'], $result->foo);
+    }
+    
+    public function testMapArraysAsArgsToGenericObjectResultsInCollectionOfStdClassInstances()
+    {
+        $firstObject = ['hello' => 'world', 'foo' => 'bar'];
+        $secondObject = ['one' => 'first', 'two' => 'second'];
+        
+        $result = map($firstObject, $secondObject)->through(Collection::class)->to(stdClass::class);
+        
+        $this->assertTrue(get_class($result) === Collection::class);
+        $this->assertEquals($firstObject['hello'], $result[0]->hello);
+        $this->assertEquals($secondObject['one'], $result[1]->one);
+    }
+    
+    public function testMapStringToBackedEnumResultInBackedEnumInstance()
+    {
+        $result = map('hidden')->to(PostStatus::class);
+
+        $this->assertTrue(get_class($result) === PostStatus::class);
+        $this->assertTrue($result === PostStatus::Hidden);
+    }
+    
+    public function testMapStringsAsArgsToBackedEnumInCollectionOfBackedEnumInstances()
+    {
+        $result = map('hidden', 'published')->through(Collection::class)->to(PostStatus::class);
+
+        $this->assertTrue(get_class($result) === Collection::class);
+        $this->assertTrue($result[0] === PostStatus::Hidden);
+        $this->assertTrue($result[1] === PostStatus::Published);
     }
 }

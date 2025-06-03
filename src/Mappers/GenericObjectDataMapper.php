@@ -7,7 +7,7 @@ use stdClass;
 
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 
-final class GenericObjectDataMapper implements DataMapper
+final class GenericObjectDataMapper extends DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
@@ -21,12 +21,10 @@ final class GenericObjectDataMapper implements DataMapper
     /**
      * Resolve mapper that runs once assert returns true.
      */
-    public function resolve(MappingValue $mappingValue): mixed
+    public function resolve(MappingValue $mappingValue): void
     {
-        if (is_array($mappingValue->data)) {
-            return (object) $mappingValue->data;
-        }
-
-        return json_decode($mappingValue->data);
+        $mappingValue->data = is_array($mappingValue->data)
+            ? (object) $mappingValue->data
+            : json_decode($mappingValue->data);
     }
 }

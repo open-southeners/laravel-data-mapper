@@ -6,16 +6,15 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
-use OpenSoutheners\LaravelDto\Enums\BuiltInType;
 
-final class CarbonDataMapper implements DataMapper
+final class CarbonDataMapper extends DataMapper
 {
     /**
      * Assert that this mapper resolves property with types given.
      */
     public function assert(MappingValue $mappingValue): bool
     {
-        return $mappingValue->typeFromData->assert(BuiltInType::String, BuiltInType::Integer)
+        return in_array(gettype($mappingValue->data), ['string', 'integer'], true)
             && ($mappingValue->preferredTypeClass === CarbonInterface::class
                 || is_subclass_of($mappingValue->preferredTypeClass, CarbonInterface::class));
     }
@@ -23,17 +22,15 @@ final class CarbonDataMapper implements DataMapper
     /**
      * Resolve mapper that runs once assert returns true.
      */
-    public function resolve(MappingValue $mappingValue): mixed
+    public function resolve(MappingValue $mappingValue): void
     {
-        $dateValue = match (true) {
-            $mappingValue->typeFromData === BuiltInType::Integer || is_numeric($mappingValue->data) => Carbon::createFromTimestamp($mappingValue->data),
+        $mappingValue->data = match (true) {
+            gettype($mappingValue->data) === 'integer' || is_numeric($mappingValue->data) => Carbon::createFromTimestamp($mappingValue->data),
             default => Carbon::make($mappingValue->data),
         };
 
         if ($mappingValue->preferredTypeClass === CarbonImmutable::class) {
-            $dateValue = $dateValue->toImmutable();
+            $mappingValue->data = $mappingValue->data->toImmutable();
         }
-
-        return $dateValue;
     }
 }

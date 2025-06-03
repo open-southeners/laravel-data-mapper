@@ -5,6 +5,7 @@ namespace OpenSoutheners\LaravelDto;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 use OpenSoutheners\LaravelDto\Enums\BuiltInType;
@@ -17,8 +18,10 @@ final class Mapper
 
     protected ?string $dataClass = null;
 
+    protected ?string $throughClass = null;
+    
     protected ?MappingValue $fromMappingValue = null;
-
+    
     protected ?string $property = null;
 
     protected array $propertyTypes = [];
@@ -27,6 +30,10 @@ final class Mapper
 
     public function __construct(mixed $input)
     {
+        if (is_array($input) && count($input) === 1) {
+            $input = reset($input);
+        }
+        
         if (is_object($input)) {
             $this->dataClass = get_class($input);
         }
@@ -62,20 +69,12 @@ final class Mapper
     }
 
     /**
-     * @param  array<\Symfony\Component\PropertyInfo\Type>  $types
-     *
-     * @internal
+     * Map values through class.
      */
-    public function through(MappingValue $mappingValue, string $property, array $types): static
+    public function through(string $class): static
     {
-        $this->fromMappingValue = $mappingValue;
-
-        $this->property = $property;
-
-        $this->propertyTypes = $types;
+        $this->throughClass = $class;
         
-        $this->runningFromMapper = true;
-
         return $this;
     }
 
@@ -87,50 +86,25 @@ final class Mapper
      */
     public function to(?string $output = null)
     {
-        // TODO: Move to ModelMapper class
-        // if ($output && is_a($output, Model::class, true)) {
-        //     /** @var Model $model */
-        //     $model = new $output;
-
-        //     foreach ($this->data as $key => $value) {
-        //         if ($model->isRelation($key) && $model->$key() instanceof BelongsTo) {
-        //             $model->$key()->associate($value);
-        //         }
-
-        //         $model->fill([$key => $value]);
-        //     }
-
-        //     return $model;
-        // }
-
         $output ??= $this->dataClass;
 
-        $mappedValue = $this->data;
-
-        if (is_array($mappedValue)) {
-            $reflectionClass = $this->fromMappingValue?->class ?? $output ? new ReflectionClass($output) : null;
-        } else {
-            $reflectionClass = $output ? new ReflectionClass($output) : null;
-        }
+        // if (is_array($this->data)) {
+        //     $reflectionClass = $this->fromMappingValue?->class ?? $output ? new ReflectionClass($output) : null;
+        // } else {
+        //     $reflectionClass = $output ? new ReflectionClass($output) : null;
+        // }
 
         $mappingDataValue = new MappingValue(
             data: $this->data,
-            allMappingData: ($this->runningFromMapper ? $this->fromMappingValue?->allMappingData : $this->data) ?? [],
-            typeFromData: BuiltInType::guess($this->data),
+            allMappingData: (!$this->runningFromMapper ? $this->fromMappingValue?->allMappingData : $this->data) ?? [],
             types: $this->propertyTypes,
             objectClass: $output,
-            class: $reflectionClass,
-            property: $this->fromMappingValue?->property ?? ($this->property ? $reflectionClass->getProperty($this->property) : null)
+            collectClass: $this->throughClass,
         );
 
-        foreach (ServiceProvider::getMappers() as $mapper) {
-            if ($mapper->assert($mappingDataValue)) {
-                $mappedValue = $mapper->resolve($mappingDataValue);
-
-                break;
-            }
-        }
-
-        return $mappedValue;
+        return app(Pipeline::class)
+            ->through(ServiceProvider::getMappers())
+            ->send($mappingDataValue)
+            ->then(fn (MappingValue $mappingValue) => $mappingValue->data);
     }
 }
