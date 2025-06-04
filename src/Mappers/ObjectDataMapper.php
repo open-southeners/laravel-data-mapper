@@ -77,13 +77,15 @@ final class ObjectDataMapper extends DataMapper
                 continue;
             }
             
+            $unwrappedType = app(PropertyInfoExtractor::class)->unwrapType($type);
+            
             if ($type instanceof Type\NullableType) {
                 $type = $type->getWrappedType();
             }
             
             if ($type instanceof Type\CollectionType) {
                 $data[$key] = map($value)
-                    ->through((string) $type->getWrappedType()->getWrappedType())
+                    ->through((string) $unwrappedType)
                     ->to($type->getCollectionValueType());
                     
                 continue;

@@ -13,6 +13,7 @@ use ReflectionClass;
 class ServiceProvider extends BaseServiceProvider
 {
     protected static $mappers = [
+        Mappers\MapeableObjectMapper::class,
         Mappers\CollectionDataMapper::class,
         Mappers\ModelDataMapper::class,
 

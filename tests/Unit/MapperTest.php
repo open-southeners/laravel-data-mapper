@@ -5,8 +5,10 @@ namespace OpenSoutheners\LaravelDto\Tests\Unit;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as DatabaseCollection;
 use Illuminate\Support\Collection;
+use OpenSoutheners\LaravelDto\Support\TypeScript;
 use OpenSoutheners\LaravelDto\Tests\Integration\TestCase;
 use stdClass;
+use Workbench\App\DataTransferObjects\UpdatePostWithDefaultData;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\User;
 use Workbench\Database\Factories\UserFactory;
@@ -127,5 +129,15 @@ class MapperTest extends TestCase
         $this->assertTrue(get_class($result) === Collection::class);
         $this->assertTrue($result[0] === PostStatus::Hidden);
         $this->assertTrue($result[1] === PostStatus::Published);
+    }
+    
+    public function testMapObjectToTypeScriptResultsInStringifiedScriptCode()
+    {
+        $result = (string) map(UpdatePostWithDefaultData::class)->to(TypeScript::class);
+
+        $this->assertIsString($result);
+        $this->assertStringContainsString('post: Post,', $result);
+        $this->assertStringContainsString('author: User,', $result);
+        $this->assertStringContainsString('parent: Post | Tag | null,', $result);
     }
 }

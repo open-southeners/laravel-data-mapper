@@ -4,6 +4,7 @@ namespace OpenSoutheners\LaravelDto\Tests\Unit;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use OpenSoutheners\LaravelDto\Tests\Integration\TestCase;
 use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
 use Workbench\App\DataTransferObjects\CreatePostData;
@@ -11,7 +12,7 @@ use Workbench\App\Enums\PostStatus;
 
 use function OpenSoutheners\LaravelDto\map;
 
-class DataTransferObjectTest extends UnitTestCase
+class DataTransferObjectTest extends TestCase
 {
     public function test_data_transfer_object_from_array()
     {
