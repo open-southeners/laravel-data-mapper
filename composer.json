@@ -1,5 +1,5 @@
 {
-    "name": "open-southeners/laravel-dto",
+    "name": "open-southeners/laravel-data-mapper",
     "description": "Integrate data transfer objects into Laravel, the easiest way",
     "license": "MIT",
     "keywords": [
@@ -43,7 +43,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "OpenSoutheners\\LaravelDto\\": "src"
+            "OpenSoutheners\\LaravelDataMapper\\": "src"
         },
         "files": [
             "src/functions.php"
@@ -51,7 +51,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "OpenSoutheners\\LaravelDto\\Tests\\": "tests",
+            "OpenSoutheners\\LaravelDataMapper\\Tests\\": "tests",
             "Workbench\\App\\": "workbench/app/",
             "Workbench\\Database\\Factories\\": "workbench/database/factories/",
             "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
@@ -63,7 +63,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "OpenSoutheners\\LaravelDto\\ServiceProvider"
+                "OpenSoutheners\\LaravelDataMapper\\ServiceProvider"
             ]
         }
     },

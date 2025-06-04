@@ -1,11 +1,11 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Mappers;
+namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 
 final class CarbonDataMapper extends DataMapper
 {

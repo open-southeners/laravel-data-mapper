@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests\Integration;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -8,7 +8,7 @@ use Workbench\App\DataTransferObjects\UpdatePostWithRouteBindingData;
 use Workbench\Database\Factories\PostFactory;
 use Workbench\Database\Factories\TagFactory;
 
-use function OpenSoutheners\LaravelDto\map;
+use function OpenSoutheners\LaravelDataMapper\map;
 
 class ValidatedDataTransferObjectTest extends TestCase
 {

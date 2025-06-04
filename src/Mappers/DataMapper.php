@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Mappers;
+namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use Closure;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 
 abstract class DataMapper
 {

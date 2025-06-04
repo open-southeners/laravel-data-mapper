@@ -1,19 +1,19 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Unit;
+namespace OpenSoutheners\LaravelDataMapper\Tests\Unit;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as DatabaseCollection;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Support\TypeScript;
-use OpenSoutheners\LaravelDto\Tests\Integration\TestCase;
+use OpenSoutheners\LaravelDataMapper\Support\TypeScript;
+use OpenSoutheners\LaravelDataMapper\Tests\Integration\TestCase;
 use stdClass;
 use Workbench\App\DataTransferObjects\UpdatePostWithDefaultData;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\User;
 use Workbench\Database\Factories\UserFactory;
 
-use function OpenSoutheners\LaravelDto\map;
+use function OpenSoutheners\LaravelDataMapper\map;
 
 class MapperTest extends TestCase
 {

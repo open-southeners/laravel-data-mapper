@@ -1,13 +1,11 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto;
+namespace OpenSoutheners\LaravelDataMapper;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
-use OpenSoutheners\LaravelDto\Attributes\Validate;
-use OpenSoutheners\LaravelDto\Commands\DtoMakeCommand;
-use OpenSoutheners\LaravelDto\Commands\DtoTypescriptGenerateCommand;
-use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\Validate;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use ReflectionClass;
 
 class ServiceProvider extends BaseServiceProvider

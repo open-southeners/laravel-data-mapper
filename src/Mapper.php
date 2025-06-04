@@ -1,14 +1,14 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto;
+namespace OpenSoutheners\LaravelDataMapper;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
-use OpenSoutheners\LaravelDto\Enums\BuiltInType;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
+use OpenSoutheners\LaravelDataMapper\Enums\BuiltInType;
 use ReflectionClass;
 use ReflectionProperty;
 

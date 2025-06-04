@@ -2,9 +2,9 @@
 
 namespace Workbench\App\DataTransferObjects;
 
-use OpenSoutheners\LaravelDto\Attributes\Authenticated;
-use OpenSoutheners\LaravelDto\Attributes\ResolveModel;
-use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use Workbench\App\Models\Post;
 use Workbench\App\Models\Tag;
 use Workbench\App\Models\User;

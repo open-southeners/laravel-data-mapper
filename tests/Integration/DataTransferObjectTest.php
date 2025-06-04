@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests\Integration;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -19,7 +19,7 @@ use Workbench\Database\Factories\FilmFactory;
 use Workbench\Database\Factories\PostFactory;
 use Workbench\Database\Factories\TagFactory;
 
-use function OpenSoutheners\LaravelDto\map;
+use function OpenSoutheners\LaravelDataMapper\map;
 
 class DataTransferObjectTest extends TestCase
 {

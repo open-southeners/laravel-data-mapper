@@ -1,8 +1,7 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Mappers;
+namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
-use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as DatabaseCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -10,14 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Attributes\ModelWith;
-use OpenSoutheners\LaravelDto\Attributes\ResolveModel;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
-use ReflectionAttribute;
-use ReflectionProperty;
-use Symfony\Component\PropertyInfo\Type;
+use OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 
-use function OpenSoutheners\LaravelDto\map;
+use function OpenSoutheners\LaravelDataMapper\map;
 
 final class ModelDataMapper extends DataMapper
 {
@@ -76,10 +71,10 @@ final class ModelDataMapper extends DataMapper
         
         // $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
 
-        // /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDto\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
+        // /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
         // $resolveModelAttributeReflector = reset($resolveModelAttributeReflector);
 
-        // /** @var \OpenSoutheners\LaravelDto\Attributes\ResolveModel|null $resolveModelAttribute */
+        // /** @var \OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel|null $resolveModelAttribute */
         // $resolveModelAttribute = $resolveModelAttributeReflector
         //     ? $resolveModelAttributeReflector->newInstance()
         //     : new ResolveModel(morphTypeFrom: ResolveModel::getDefaultMorphKeyFrom($mappingValue->property->getName()));

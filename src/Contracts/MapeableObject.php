@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Contracts;
+namespace OpenSoutheners\LaravelDataMapper\Contracts;
 
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 
 interface MapeableObject
 {

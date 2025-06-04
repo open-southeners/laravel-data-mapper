@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Mappers;
+namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use BackedEnum;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 use ReflectionEnum;
 
 final class BackedEnumDataMapper extends DataMapper

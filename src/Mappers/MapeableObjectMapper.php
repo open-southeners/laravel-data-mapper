@@ -1,9 +1,9 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Mappers;
+namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
-use OpenSoutheners\LaravelDto\Contracts\MapeableObject;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
+use OpenSoutheners\LaravelDataMapper\Contracts\MapeableObject;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 
 class MapeableObjectMapper extends DataMapper
 {

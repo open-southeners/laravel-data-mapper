@@ -4,11 +4,11 @@ namespace Workbench\App\DataTransferObjects;
 
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Attributes\AsType;
-use OpenSoutheners\LaravelDto\Attributes\Authenticated;
-use OpenSoutheners\LaravelDto\Attributes\ModelWith;
-use OpenSoutheners\LaravelDto\Attributes\Validate;
-use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\AsType;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Attributes\ModelWith;
+use OpenSoutheners\LaravelDataMapper\Attributes\Validate;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use stdClass;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Http\Requests\PostUpdateFormRequest;

@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests\Integration;
 
 use Orchestra\Testbench\Concerns\WithWorkbench;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto;
+namespace OpenSoutheners\LaravelDataMapper;
 
 function map(mixed ...$input): Mapper
 {

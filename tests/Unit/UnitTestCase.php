@@ -1,13 +1,13 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Unit;
+namespace OpenSoutheners\LaravelDataMapper\Tests\Unit;
 
 use Illuminate\Auth\AuthManager;
 use Illuminate\Config\Repository;
 use Illuminate\Container\Container;
 use Mockery;
-use OpenSoutheners\LaravelDto\Mappers;
-use OpenSoutheners\LaravelDto\ServiceProvider;
+use OpenSoutheners\LaravelDataMapper\Mappers;
+use OpenSoutheners\LaravelDataMapper\ServiceProvider;
 use PHPUnit\Framework\TestCase;
 
 abstract class UnitTestCase extends TestCase

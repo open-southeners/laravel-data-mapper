@@ -1,14 +1,14 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Mappers;
+namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use Illuminate\Contracts\Container\ContextualAttribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use OpenSoutheners\LaravelDto\Attributes\NormaliseProperties;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
-use OpenSoutheners\LaravelDto\PropertyInfoExtractor;
+use OpenSoutheners\LaravelDataMapper\Attributes\NormaliseProperties;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
+use OpenSoutheners\LaravelDataMapper\PropertyInfoExtractor;
 use ReflectionAttribute;
 use ReflectionClass;
 use ReflectionProperty;
@@ -16,7 +16,7 @@ use stdClass;
 use Symfony\Component\TypeInfo\Type;
 
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
-use function OpenSoutheners\LaravelDto\map;
+use function OpenSoutheners\LaravelDataMapper\map;
 
 final class ObjectDataMapper extends DataMapper
 {

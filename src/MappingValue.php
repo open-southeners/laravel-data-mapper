@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\DataTransferObjects;
+namespace OpenSoutheners\LaravelDataMapper;
 
 use Illuminate\Support\Collection;
 use Symfony\Component\TypeInfo\Type;

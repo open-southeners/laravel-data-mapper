@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Contracts;
+namespace OpenSoutheners\LaravelDataMapper\Contracts;
 
 /**
  * This solely act as a tag for the class to be resolved by the Laravel DI (Container).

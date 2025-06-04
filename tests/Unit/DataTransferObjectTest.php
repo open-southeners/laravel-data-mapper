@@ -1,16 +1,16 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Unit;
+namespace OpenSoutheners\LaravelDataMapper\Tests\Unit;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Tests\Integration\TestCase;
+use OpenSoutheners\LaravelDataMapper\Tests\Integration\TestCase;
 use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
 use Workbench\App\DataTransferObjects\CreatePostData;
 use Workbench\App\Enums\PostStatus;
 
-use function OpenSoutheners\LaravelDto\map;
+use function OpenSoutheners\LaravelDataMapper\map;
 
 class DataTransferObjectTest extends TestCase
 {

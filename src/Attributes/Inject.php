@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Attributes;
+namespace OpenSoutheners\LaravelDataMapper\Attributes;
 
 use Attribute;
 use Illuminate\Contracts\Container\Container;

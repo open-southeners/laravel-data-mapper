@@ -1,8 +1,8 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Mappers;
+namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 use stdClass;
 
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;

@@ -3,10 +3,10 @@
 namespace Workbench\App\DataTransferObjects;
 
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Attributes\Authenticated;
-use OpenSoutheners\LaravelDto\Attributes\ResolveModel;
-use OpenSoutheners\LaravelDto\Attributes\Validate;
-use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel;
+use OpenSoutheners\LaravelDataMapper\Attributes\Validate;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use Workbench\App\Http\Requests\TagUpdateFormRequest;
 use Workbench\App\Models\Film;
 use Workbench\App\Models\Post;

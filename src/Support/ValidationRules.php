@@ -1,16 +1,16 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Support;
+namespace OpenSoutheners\LaravelDataMapper\Support;
 
 use ArrayAccess;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\Rule;
-use OpenSoutheners\LaravelDto\Attributes\Authenticated;
-use OpenSoutheners\LaravelDto\Attributes\Inject;
-use OpenSoutheners\LaravelDto\Contracts\MapeableObject;
-use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
-use OpenSoutheners\LaravelDto\PropertyInfoExtractor;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Attributes\Inject;
+use OpenSoutheners\LaravelDataMapper\Contracts\MapeableObject;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
+use OpenSoutheners\LaravelDataMapper\PropertyInfoExtractor;
 use ReflectionAttribute;
 use ReflectionClass;
 use Symfony\Component\TypeInfo\Type;

@@ -4,8 +4,8 @@ namespace Workbench\App\DataTransferObjects;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\Attributes\Authenticated;
-use OpenSoutheners\LaravelDto\Contracts\RouteTransferableObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use stdClass;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\Post;
