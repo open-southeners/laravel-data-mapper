@@ -56,16 +56,6 @@ class ServiceProvider extends BaseServiceProvider
     }
 
     /**
-     * Register any application services.
-     *
-     * @return void
-     */
-    public function register()
-    {
-        //
-    }
-
-    /**
      * Register new dynamic mappers.
      */
     public static function registerMapper(string|array $mapper, bool $replacing = false): void
@@ -83,16 +73,5 @@ class ServiceProvider extends BaseServiceProvider
     public static function getMappers(): array
     {
         return static::$mappers;
-        // $mappers = [];
-
-        // foreach (static::$mappers as $mapper) {
-        //     $mapperInstance = new $mapper;
-
-        //     if ($mapperInstance instanceof Mappers\DataMapper) {
-        //         $mappers[] = $mapperInstance;
-        //     }
-        // }
-
-        // return $mappers;
     }
 }

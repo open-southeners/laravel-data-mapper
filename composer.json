@@ -1,6 +1,6 @@
 {
     "name": "open-southeners/laravel-data-mapper",
-    "description": "Integrate data transfer objects into Laravel, the easiest way",
+    "description": "Extensible data mapper to objects, DTOs, enums, collections, Eloquent models, etc",
     "license": "MIT",
     "keywords": [
         "open-southeners",
@@ -8,6 +8,8 @@
         "laravel-package",
         "data",
         "data-transfer-objects",
+        "data-mapper",
+        "object-mapper",
         "requests",
         "http"
     ],
