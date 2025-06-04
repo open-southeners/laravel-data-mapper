@@ -108,7 +108,7 @@ final class ObjectDataMapper extends DataMapper
         $class = new ReflectionClass($mappingValue->objectClass);
         
         $normaliseProperty = count($class->getAttributes(NormaliseProperties::class)) > 0
-            ?: (app('config')->get('data-transfer-objects.normalise_properties') ?? true);
+            ?: (app('config')->get('data-mapper.normalise_properties') ?? true);
 
         if (! $normaliseProperty) {
             return $key;

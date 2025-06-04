@@ -114,7 +114,7 @@ class DataTransferObjectTest extends TestCase
 
     public function test_data_transfer_object_without_property_keys_normalisation_when_disabled_from_config()
     {
-        config(['data-transfer-objects.normalise_properties' => false]);
+        config(['data-mapper.normalise_properties' => false]);
 
         $post = Post::create([
             'id' => 2,

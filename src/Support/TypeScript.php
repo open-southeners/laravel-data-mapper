@@ -6,9 +6,11 @@ use BackedEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use OpenSoutheners\LaravelDto\Attributes\AsType;
 use OpenSoutheners\LaravelDto\Contracts\MapeableObject;
 use OpenSoutheners\LaravelDto\DataTransferObjects\MappingValue;
 use OpenSoutheners\LaravelDto\PropertyInfoExtractor;
+use ReflectionClass;
 use Stringable;
 use Symfony\Component\TypeInfo\Type;
 use Symfony\Component\TypeInfo\TypeIdentifier;
@@ -78,6 +80,16 @@ final class TypeScript implements MapeableObject, Stringable
     
     private function typeName(string $class): string
     {
+        $reflectionClass = new ReflectionClass($class);
+        
+        $attributes = $reflectionClass->getAttributes(AsType::class);
+        
+        $asTypeAttribute = reset($attributes);
+        
+        if ($asTypeAttribute) {
+            return $asTypeAttribute->newInstance()->typeName;
+        }
+        
         return class_basename($class);
     }
     

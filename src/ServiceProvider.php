@@ -32,10 +32,8 @@ class ServiceProvider extends BaseServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__.'/../config/data-transfer-objects.php' => config_path('data-transfer-objects.php'),
-            ], 'config');
-
-            $this->commands([DtoMakeCommand::class, DtoTypescriptGenerateCommand::class]);
+                __DIR__.'/../config/data-mapper.php' => config_path('data-mapper.php'),
+            ], ['config', 'laravel-data-mapper']);
         }
 
         $this->app->beforeResolving(
