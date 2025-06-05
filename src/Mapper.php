@@ -7,8 +7,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDataMapper\MappingValue;
-use OpenSoutheners\LaravelDataMapper\Enums\BuiltInType;
 use ReflectionClass;
 use ReflectionProperty;
 
@@ -19,13 +17,13 @@ final class Mapper
     protected ?string $dataClass = null;
 
     protected ?string $throughClass = null;
-    
+
     protected ?MappingValue $fromMappingValue = null;
-    
+
     protected ?string $property = null;
 
     protected array $propertyTypes = [];
-    
+
     protected bool $runningFromMapper = false;
 
     public function __construct(mixed $input)
@@ -33,7 +31,7 @@ final class Mapper
         if (is_array($input) && count($input) === 1) {
             $input = reset($input);
         }
-        
+
         if (is_object($input)) {
             $this->dataClass = get_class($input);
         }
@@ -74,7 +72,7 @@ final class Mapper
     public function through(string $class): static
     {
         $this->throughClass = $class;
-        
+
         return $this;
     }
 
@@ -96,7 +94,7 @@ final class Mapper
 
         $mappingDataValue = new MappingValue(
             data: $this->data,
-            allMappingData: (!$this->runningFromMapper ? $this->fromMappingValue?->allMappingData : $this->data) ?? [],
+            allMappingData: (! $this->runningFromMapper ? $this->fromMappingValue?->allMappingData : $this->data) ?? [],
             types: $this->propertyTypes,
             objectClass: $output,
             collectClass: $this->throughClass,

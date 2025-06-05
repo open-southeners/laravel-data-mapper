@@ -33,42 +33,42 @@ final class ModelDataMapper extends DataMapper
         if (is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data)) {
             /** @var Model $modelInstance */
             $modelInstance = new $mappingValue->preferredTypeClass;
-            
+
             foreach ($mappingValue->data as $key => $value) {
                 if ($modelInstance->isRelation($key) && $modelInstance->$key() instanceof BelongsTo) {
                     $modelInstance->$key()->associate($value);
-                    
+
                     continue;
                 }
-                
+
                 if ($modelInstance->isRelation($key) && $modelInstance->$key() instanceof HasMany) {
                     $modelInstance->setRelation($key, map($value)->to(get_class($modelInstance->$key()->getModel())));
-                    
+
                     continue;
                 }
 
                 $modelInstance->fill([$key => $value]);
             }
-            
+
             $mappingValue->data = $modelInstance;
-            
+
             return;
         }
-        
+
         if (is_string($mappingValue->data) && str_contains($mappingValue->data, ',')) {
             $mappingValue->data = array_filter(explode(',', $mappingValue->data));
         }
-        
+
         if (count($mappingValue->types) <= 1) {
             $mappingValue->data = $this->resolveIntoModelInstance($mappingValue->data, $mappingValue->preferredTypeClass);
         }
-        
+
         if ($mappingValue->collectClass === Collection::class) {
             $mappingValue->data = $mappingValue->data instanceof DatabaseCollection
                 ? $mappingValue->data->toBase()
                 : Collection::make($mappingValue->data);
         }
-        
+
         // $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
 
         // /** @var \ReflectionAttribute<\OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel>|null $resolveModelAttributeReflector */
@@ -128,7 +128,7 @@ final class ModelDataMapper extends DataMapper
         //             if (! is_null($valueB)) {
         //                 $lastNonValue = $valueB;
         //             }
-    
+
         //             return [$valueA, $valueB ?? $lastNonValue];
         //         },
         //         $data,

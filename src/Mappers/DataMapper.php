@@ -16,15 +16,15 @@ abstract class DataMapper
      * Resolve mapper that runs once assert returns true.
      */
     abstract public function resolve(MappingValue $mappingValue): void;
-    
+
     public function __invoke(MappingValue $mappingValue, Closure $next)
     {
-        if (!$this->assert($mappingValue)) {
+        if (! $this->assert($mappingValue)) {
             return $next($mappingValue);
         }
-        
+
         $this->resolve($mappingValue);
-        
+
         return $next($mappingValue);
     }
 }

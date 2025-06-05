@@ -15,15 +15,15 @@ final class PropertyInfoExtractor
 
     public function __construct()
     {
-        $phpStanExtractor = new PhpStanExtractor();
-        $reflectionExtractor = new ReflectionExtractor();
-    
+        $phpStanExtractor = new PhpStanExtractor;
+        $reflectionExtractor = new ReflectionExtractor;
+
         $this->extractor = new Extractor(
             [$reflectionExtractor],
             [$phpStanExtractor, $reflectionExtractor],
         );
     }
-    
+
     public function typeInfo(string $class, string $property, array $context = []): ?Type
     {
         return $this->extractor->getType($class, $property, $context);
@@ -35,26 +35,26 @@ final class PropertyInfoExtractor
     public function typeInfoFromClass(string $class, array $context = []): array
     {
         $classReflection = new ReflectionClass($class);
-        
+
         $classProperties = $classReflection->getProperties(ReflectionProperty::IS_PUBLIC);
-        
+
         $propertiesTypes = [];
-        
+
         foreach ($classProperties as $property) {
             $propertiesTypes[$property->getName()] = $this->extractor->getType($class, $property->getName(), $context);
         }
-        
+
         return $propertiesTypes;
     }
-    
+
     public function unwrapType(Type $type): Type
     {
         $builtinType = $type;
-        
+
         while (method_exists($builtinType, 'getWrappedType')) {
             $builtinType = $builtinType->getWrappedType();
         }
-        
+
         return $builtinType;
     }
 }

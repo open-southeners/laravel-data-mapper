@@ -50,8 +50,8 @@ class ServiceProvider extends BaseServiceProvider
                 });
             }
         );
-        
-        $this->app->instance(PropertyInfoExtractor::class, new PropertyInfoExtractor());
+
+        $this->app->instance(PropertyInfoExtractor::class, new PropertyInfoExtractor);
         $this->app->alias(PropertyInfoExtractor::class, 'propertyInfo');
     }
 

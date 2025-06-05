@@ -27,10 +27,10 @@ final class MappingValue
     public function __construct(
         public mixed $data,
         public readonly array $allMappingData,
-        
+
         public readonly ?string $objectClass = null,
         public readonly ?string $collectClass = null,
-        
+
         public readonly ?array $types = null,
     ) {
         $this->preferredType = $types ? (reset($types) ?? null) : null;

@@ -3,7 +3,6 @@
 namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use Symfony\Component\TypeInfo\Type;
@@ -32,7 +31,7 @@ final class CollectionDataMapper extends DataMapper
     {
         if ($mappingValue->objectClass === EloquentCollection::class) {
             $mappingValue->data = $mappingValue->data->toBase();
-            
+
             return;
         }
 
@@ -41,7 +40,7 @@ final class CollectionDataMapper extends DataMapper
             is_string($mappingValue->data) => Collection::make(explode(',', $mappingValue->data)),
             default => Collection::make($mappingValue->data),
         };
-        
+
         if ($mappingValue->preferredTypeClass) {
             $collection = $collection->map(fn ($value) => map($value)->to($mappingValue->preferredTypeClass));
         }
@@ -49,7 +48,7 @@ final class CollectionDataMapper extends DataMapper
         // if ($mappingValue->preferredType->getBuiltinType() === Type::BUILTIN_TYPE_ARRAY) {
         //     $collection = $collection->all();
         // }
-        
+
         $mappingValue->data = $collection;
     }
 }

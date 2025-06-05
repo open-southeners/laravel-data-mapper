@@ -3,7 +3,6 @@
 namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use Illuminate\Contracts\Container\ContextualAttribute;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDataMapper\Attributes\NormaliseProperties;
@@ -44,7 +43,7 @@ final class ObjectDataMapper extends DataMapper
     public function resolve(MappingValue $mappingValue): void
     {
         $class = new ReflectionClass($mappingValue->preferredTypeClass);
-        
+
         $data = [];
 
         $mappingData = is_string($mappingValue->data) ? json_decode($mappingValue->data, true) : $mappingValue->data;
@@ -59,7 +58,7 @@ final class ObjectDataMapper extends DataMapper
             $value = $propertiesData[$key] ?? null;
 
             $type = app(PropertyInfoExtractor::class)->typeInfo($class->getName(), $key);
-            
+
             /** @var \Illuminate\Support\Collection<\ReflectionAttribute> $propertyAttributes */
             $propertyAttributes = Collection::make($property->getAttributes());
 
@@ -76,21 +75,21 @@ final class ObjectDataMapper extends DataMapper
             if (is_null($value)) {
                 continue;
             }
-            
+
             $unwrappedType = app(PropertyInfoExtractor::class)->unwrapType($type);
-            
+
             if ($type instanceof Type\NullableType) {
                 $type = $type->getWrappedType();
             }
-            
+
             if ($type instanceof Type\CollectionType) {
                 $data[$key] = map($value)
                     ->through((string) $unwrappedType)
                     ->to($type->getCollectionValueType());
-                    
+
                 continue;
             }
-            
+
             $data[$key] = match (true) {
                 $type instanceof Type\ObjectType => map($value)->to((string) $type),
                 default => $value,
@@ -106,7 +105,7 @@ final class ObjectDataMapper extends DataMapper
     protected function normalisePropertyKey(MappingValue $mappingValue, string $key): ?string
     {
         $class = new ReflectionClass($mappingValue->objectClass);
-        
+
         $normaliseProperty = count($class->getAttributes(NormaliseProperties::class)) > 0
             ?: (app('config')->get('data-mapper.normalise_properties') ?? true);
 

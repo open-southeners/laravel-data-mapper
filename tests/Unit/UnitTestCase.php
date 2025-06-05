@@ -32,7 +32,7 @@ abstract class UnitTestCase extends TestCase
 
         Container::getInstance()->bind('config', fn () => $mockedConfig);
     }
-    
+
     public function actAsUser($user = null)
     {
         $mockedAuth = Mockery::mock(AuthManager::class);
