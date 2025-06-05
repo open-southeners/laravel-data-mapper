@@ -6,6 +6,7 @@ use Illuminate\Contracts\Container\ContextualAttribute;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDataMapper\Attributes\NormaliseProperties;
+use OpenSoutheners\LaravelDataMapper\Mapper;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use OpenSoutheners\LaravelDataMapper\PropertyInfoExtractor;
 use ReflectionAttribute;
@@ -83,9 +84,11 @@ final class ObjectDataMapper extends DataMapper
             }
 
             if ($type instanceof Type\CollectionType) {
+                $collectionValueType = $type->getCollectionValueType();
+                
                 $data[$key] = map($value)
                     ->through((string) $unwrappedType)
-                    ->to($type->getCollectionValueType());
+                    ->to((string) $collectionValueType);
 
                 continue;
             }

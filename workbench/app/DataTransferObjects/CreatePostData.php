@@ -20,7 +20,7 @@ class CreatePostData implements RouteTransferableObject
      */
     public function __construct(
         public string $title,
-        public ?array $tags,
+        public ?array $tags = null,
         public PostStatus $postStatus,
         public ?Post $post = null,
         public array|string|null $country = null,
@@ -33,7 +33,9 @@ class CreatePostData implements RouteTransferableObject
         public ?Collection $dates = null,
         $authorEmail = null
     ) {
-        $this->tags ??= ['generic', 'post'];
+        if (count($this->tags) === 0) {
+            $this->tags = ['generic', 'post'];
+        }
 
         $this->authorEmail = $authorEmail;
     }

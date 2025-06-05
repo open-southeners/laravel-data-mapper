@@ -7,11 +7,14 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Pipeline\Pipeline;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Traits\Conditionable;
 use ReflectionClass;
 use ReflectionProperty;
 
 final class Mapper
 {
+    use Conditionable;
+    
     protected mixed $data;
 
     protected ?string $dataClass = null;

@@ -5,7 +5,6 @@ namespace OpenSoutheners\LaravelDataMapper\Mappers;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
-use Symfony\Component\TypeInfo\Type;
 
 use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 use function OpenSoutheners\LaravelDataMapper\map;
@@ -17,11 +16,11 @@ final class CollectionDataMapper extends DataMapper
      */
     public function assert(MappingValue $mappingValue): bool
     {
-        return ($mappingValue->collectClass === Collection::class && is_array($mappingValue->data))
+        return $mappingValue->collectClass === 'array'
+            || ($mappingValue->collectClass === Collection::class && is_array($mappingValue->data))
             || ($mappingValue->collectClass === Collection::class && is_string($mappingValue->data) && str_contains($mappingValue->data, ','))
-            || $mappingValue->preferredType instanceof Type\CollectionType
-            || $mappingValue->preferredTypeClass === Collection::class
-            || $mappingValue->preferredTypeClass === EloquentCollection::class;
+            || $mappingValue->objectClass === Collection::class
+            || $mappingValue->objectClass === EloquentCollection::class;
     }
 
     /**
@@ -40,14 +39,18 @@ final class CollectionDataMapper extends DataMapper
             is_string($mappingValue->data) => Collection::make(explode(',', $mappingValue->data)),
             default => Collection::make($mappingValue->data),
         };
-
-        if ($mappingValue->preferredTypeClass) {
-            $collection = $collection->map(fn ($value) => map($value)->to($mappingValue->preferredTypeClass));
+        
+        $collection = $collection->filter();
+        
+        if ($mappingValue->collectClass === 'array') {
+            $mappingValue->data = $collection->all();
+            
+            return;
         }
 
-        // if ($mappingValue->preferredType->getBuiltinType() === Type::BUILTIN_TYPE_ARRAY) {
-        //     $collection = $collection->all();
-        // }
+        if ($mappingValue->objectClass && $mappingValue->objectClass !== Collection::class) {
+            $collection = $collection->map(fn ($value) => map($value)->to($mappingValue->objectClass));
+        }
 
         $mappingValue->data = $collection;
     }

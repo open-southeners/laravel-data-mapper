@@ -14,7 +14,7 @@ use function OpenSoutheners\LaravelDataMapper\map;
 
 class DataTransferObjectTest extends TestCase
 {
-    public function test_data_transfer_object_from_array()
+    public function test_object_as_data_transfer_object_from_array()
     {
         $data = map([
             'title' => 'Hello world',
