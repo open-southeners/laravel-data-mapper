@@ -1,12 +1,14 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Workbench\App\DataTransferObjects\UpdatePostWithRouteBindingData;
 use Workbench\Database\Factories\PostFactory;
 use Workbench\Database\Factories\TagFactory;
+
+use function OpenSoutheners\LaravelDataMapper\map;
 
 class ValidatedDataTransferObjectTest extends TestCase
 {
@@ -19,7 +21,7 @@ class ValidatedDataTransferObjectTest extends TestCase
         $this->withoutExceptionHandling();
     }
 
-    public function testValidatedDataTransferObjectGetsRouteBoundModel()
+    public function test_validated_data_transfer_object_gets_route_bound_model()
     {
         $post = PostFactory::new()->hasAttached(
             TagFactory::new()->count(2)
@@ -32,7 +34,7 @@ class ValidatedDataTransferObjectTest extends TestCase
         ], true);
     }
 
-    public function testValidatedDataTransferObjectGetsValidatedOnlyParameters()
+    public function test_validated_data_transfer_object_gets_validated_only_parameters()
     {
         PostFactory::new()->create();
 
@@ -58,28 +60,29 @@ class ValidatedDataTransferObjectTest extends TestCase
                     'slug' => $secondTag->slug,
                 ],
             ],
-            'published_at' => '2023-09-06T17:35:53.000000Z',
+            'publishedAt' => '2023-09-06T17:35:53.000000Z',
         ], true);
     }
 
-    public function testDataTransferObjectWithModelSentDoesLoadRelationshipIfMissing()
+    public function test_data_transfer_object_with_model_sent_does_load_relationship_if_missing()
     {
         $post = PostFactory::new()->hasAttached(
             TagFactory::new()->count(2)
         )->create();
 
-        $data = UpdatePostWithRouteBindingData::fromArray([
+        $data = map([
             'post' => $post,
-        ]);
+        ])->to(UpdatePostWithRouteBindingData::class);
 
         DB::enableQueryLog();
 
+        $this->assertTrue($data->post->relationLoaded('tags'));
         $this->assertNotEmpty($data->post->tags);
         $this->assertCount(2, $data->post->tags);
         $this->assertEmpty(DB::getQueryLog());
     }
 
-    public function testDataTransferObjectWithModelSentDoesNotRunQueriesToFetchItAgain()
+    public function test_data_transfer_object_with_model_sent_does_not_run_queries_to_fetch_it_again()
     {
         $post = PostFactory::new()->make();
 
@@ -87,15 +90,15 @@ class ValidatedDataTransferObjectTest extends TestCase
 
         DB::enableQueryLog();
 
-        $data = UpdatePostWithRouteBindingData::fromArray([
+        $data = map([
             'post' => $post,
-        ]);
+        ])->to(UpdatePostWithRouteBindingData::class);
 
         $this->assertEmpty(DB::getQueryLog());
         $this->assertTrue($data->post->is($post));
     }
 
-    public function testDataTransferObjectCanBeSerializedAndDeserialized()
+    public function test_data_transfer_object_can_be_serialized_and_deserialized()
     {
         $this->withoutExceptionHandling();
 
@@ -104,12 +107,12 @@ class ValidatedDataTransferObjectTest extends TestCase
         TagFactory::new()->create();
         TagFactory::new()->create();
 
-        $data = UpdatePostWithRouteBindingData::fromArray([
+        $data = map([
             'post' => '1',
             'tags' => '1,2',
             'post_status' => 'test_non_existing_status',
             'published_at' => '2023-09-06 17:35:53',
-        ]);
+        ])->to(UpdatePostWithRouteBindingData::class);
 
         $serializedData = serialize($data);
 

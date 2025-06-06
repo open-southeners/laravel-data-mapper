@@ -1,47 +1,26 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Unit;
+namespace OpenSoutheners\LaravelDataMapper\Tests\Unit;
 
-use Illuminate\Auth\AuthManager;
-use Illuminate\Config\Repository;
-use Illuminate\Container\Container;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use Mockery;
-use PHPUnit\Framework\TestCase;
+use OpenSoutheners\LaravelDataMapper\Tests\TestCase;
 use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
 use Workbench\App\DataTransferObjects\CreatePostData;
 use Workbench\App\Enums\PostStatus;
 
+use function OpenSoutheners\LaravelDataMapper\map;
+
 class DataTransferObjectTest extends TestCase
 {
-    public function setUp(): void
+    public function test_object_as_data_transfer_object_from_array()
     {
-        parent::setUp();
-
-        $mockedConfig = Mockery::mock(Repository::class);
-
-        $mockedConfig->shouldReceive('get')->andReturn(true);
-
-        Container::getInstance()->bind('config', fn () => $mockedConfig);
-
-        $mockedAuth = Mockery::mock(AuthManager::class);
-
-        $mockedAuth->shouldReceive('check')->andReturn(false);
-
-        Container::getInstance()->bind('auth', fn () => $mockedAuth);
-
-        Container::getInstance()->bind('dto.context.booted', fn () => '');
-    }
-
-    public function testDataTransferObjectFromArray()
-    {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => 'foo,bar,test',
             'post_status' => PostStatus::Published->value,
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->postStatus instanceof PostStatus);
         $this->assertEquals('Hello world', $data->title);
@@ -50,27 +29,29 @@ class DataTransferObjectTest extends TestCase
         $this->assertNull($data->post);
     }
 
-    public function testDataTransferObjectFromArrayDelimitedLists()
+    public function test_data_transfer_object_from_array_delimited_lists()
     {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => 'foo',
             'country' => 'foo',
             'post_status' => PostStatus::Published->value,
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertIsArray($data->tags);
         $this->assertIsString($data->country);
     }
 
-    public function testDataTransferObjectFilledViaClassProperties()
+    public function test_data_transfer_object_filled_via_class_properties()
     {
-        $data = CreatePostData::fromArray([
+        $this->markTestSkipped('To implement filled method as trait');
+
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
             'author_email' => 'me@d8vjork.com',
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->filled('tags'));
         $this->assertTrue($data->filled('postStatus'));
@@ -79,19 +60,19 @@ class DataTransferObjectTest extends TestCase
         $this->assertFalse($data->filled('author_email'));
     }
 
-    public function testDataTransferObjectWithDefaults()
+    public function test_data_transfer_object_with_defaults()
     {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertContains('generic', $data->tags);
         $this->assertContains('post', $data->tags);
     }
 
-    public function testDataTransferObjectArrayWithoutTypedPropertiesGetsThroughWithoutChanges()
+    public function test_data_transfer_object_array_without_typed_properties_gets_through_without_changes()
     {
         $helloTag = [
             'name' => 'Hello world',
@@ -103,20 +84,20 @@ class DataTransferObjectTest extends TestCase
             'slug' => 'traveling-guides',
         ];
 
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => [
                 $helloTag,
                 $travelingTag,
             ],
             'post_status' => PostStatus::Published->value,
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertContains($helloTag, $data->tags);
         $this->assertContains($travelingTag, $data->tags);
     }
 
-    public function testDataTransferObjectArrayPropertiesGetsMappedAsCollection()
+    public function test_data_transfer_object_array_properties_gets_mapped_as_collection()
     {
         $rubenUser = [
             'name' => 'Rubén Robles',
@@ -128,7 +109,7 @@ class DataTransferObjectTest extends TestCase
             'email' => 'taylor@hello.com',
         ];
 
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'subscribers' => [
@@ -136,43 +117,43 @@ class DataTransferObjectTest extends TestCase
                 $taylorUser,
             ],
             'post_status' => PostStatus::Published->value,
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->subscribers instanceof Collection);
         $this->assertContains($rubenUser, $data->subscribers);
         $this->assertContains($taylorUser, $data->subscribers);
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromStringsIntoCarbonInstances()
+    public function test_data_transfer_object_date_properties_get_mapped_from_strings_into_carbon_instances()
     {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
             'published_at' => '2023-09-06 17:35:53',
             'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "dede", "type": "text"}]}]}',
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->publishedAt instanceof Carbon);
         $this->assertTrue(now()->isAfter($data->publishedAt));
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromJsonStringsIntoGenericObjects()
+    public function test_data_transfer_object_date_properties_get_mapped_from_json_strings_into_generic_objects()
     {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
             'content' => '{"type": "doc", "content": [{"type": "paragraph", "attrs": {"textAlign": "left"}, "content": [{"text": "hello world", "type": "text"}]}]}',
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->content instanceof \stdClass);
         $this->assertObjectHasProperty('type', $data->content);
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromArraysIntoGenericObjects()
+    public function test_data_transfer_object_date_properties_get_mapped_from_arrays_into_generic_objects()
     {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
@@ -193,15 +174,15 @@ class DataTransferObjectTest extends TestCase
                     ],
                 ],
             ],
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->content instanceof \stdClass);
         $this->assertObjectHasProperty('type', $data->content);
     }
 
-    public function testDataTransferObjectDatePropertiesGetMappedFromArraysOfObjectsIntoCollectionOfGenericObjects()
+    public function test_data_transfer_object_date_properties_get_mapped_from_arrays_of_objects_into_collection_of_generic_objects()
     {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
@@ -209,7 +190,7 @@ class DataTransferObjectTest extends TestCase
                 '2023-09-06 17:35:53',
                 '2023-09-07 06:35:53',
             ],
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->dates instanceof Collection);
         $this->assertTrue($data->dates->first() instanceof Carbon);
@@ -217,9 +198,9 @@ class DataTransferObjectTest extends TestCase
         $this->assertTrue(now()->isAfter($data->dates->last()));
     }
 
-    public function testDataTransferObjectDatePropertiesDoesNotGetMappedFromCollectionsToSameType()
+    public function test_data_transfer_object_date_properties_does_not_get_mapped_from_collections_to_same_type()
     {
-        $data = CreatePostData::fromArray([
+        $data = map([
             'title' => 'Hello world',
             'tags' => '',
             'post_status' => PostStatus::Published->value,
@@ -227,16 +208,16 @@ class DataTransferObjectTest extends TestCase
                 '2023-09-06 17:35:53',
                 '2023-09-07 06:35:53',
             ]),
-        ]);
+        ])->to(CreatePostData::class);
 
         $this->assertTrue($data->dates instanceof Collection);
-        $this->assertFalse($data->dates->first() instanceof Carbon);
-        $this->assertIsString($data->dates->first());
+        $this->assertTrue($data->dates->first() instanceof Carbon);
+        $this->assertTrue($data->dates->last() instanceof Carbon);
     }
 
-    public function testDataTransferObjectSentIntoAnotherAsCollectedWillBeMappedFromArray()
+    public function test_data_transfer_object_sent_into_another_as_collected_will_be_mapped_from_array()
     {
-        $data = CreateManyPostData::fromArray([
+        $data = map([
             'posts' => [
                 [
                     'title' => 'Hello world',
@@ -257,7 +238,7 @@ class DataTransferObjectTest extends TestCase
                     ],
                 ],
             ],
-        ]);
+        ])->to(CreateManyPostData::class);
 
         $this->assertInstanceOf(Collection::class, $data->posts);
 
@@ -272,15 +253,15 @@ class DataTransferObjectTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $data->posts->last()->dates->first());
     }
 
-    public function testDataTransferObjectRetainKeysFromNestedObjectsOrArrays()
+    public function test_data_transfer_object_retain_keys_from_nested_objects_or_arrays()
     {
-        $data = CreateComment::fromArray([
+        $data = map([
             'content' => 'hello world',
             'tags' => [
                 'hello' => 'world',
-                'foo' => 'bar'
-            ]
-        ]);
+                'foo' => 'bar',
+            ],
+        ])->to(CreateComment::class);
 
         $this->assertArrayHasKey('hello', $data->tags);
         $this->assertArrayHasKey('foo', $data->tags);

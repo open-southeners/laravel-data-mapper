@@ -1,8 +1,9 @@
 <?php
 
-namespace OpenSoutheners\LaravelDto\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests;
 
 use Orchestra\Testbench\Concerns\WithWorkbench;
+
 use function Orchestra\Testbench\workbench_path;
 
 class TestCase extends \Orchestra\Testbench\TestCase
@@ -36,6 +37,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'prefix' => '',
         ]);
 
-        $app['config']->set('data-transfer-objects', include_once __DIR__.'/../../config/data-transfer-objects.php');
+        $app['config']->set('data-mapper', include_once __DIR__.'/../config/data-mapper.php');
     }
 }

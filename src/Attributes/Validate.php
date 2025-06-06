@@ -5,9 +5,9 @@ namespace OpenSoutheners\LaravelDataMapper\Attributes;
 use Attribute;
 
 #[Attribute(Attribute::TARGET_CLASS)]
-class AsType
+class Validate
 {
-    public function __construct(public string $typeName)
+    public function __construct(public string $value)
     {
         //
     }

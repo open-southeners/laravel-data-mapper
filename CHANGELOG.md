@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2025-06-08
+
+### Added
+
+- Attribute `OpenSoutheners\LaravelDto\Attributes\Inject` to inject container stuff
+- Attribute `OpenSoutheners\LaravelDto\Attributes\Authenticated` that uses base `Illuminate\Container\Attributes\Authenticated` to inject current authenticated user
+- Ability to register custom mappers (extending package functionality)
+- `OpenSoutheners\LaravelDto\Contracts\MapeableObject` interface to add custom mapping logic to your own objects classes
+- ObjectMapper now extracts type info from generics inside collections typed properties [#1]
+
+### Changed
+
+- Package renamed to `open-southeners/laravel-data-mapper`
+- Config file changed and renamed to `config/data-mapper.php` (publish the new one using `php artisan vendor:publish --tag="laravel-data-mapper"`)
+- Full refactor [#7]
+
+### Removed
+
+- Abstract class `OpenSoutheners\LaravelDto\DataTransferObject` (using POPO which means _Plain Old Php Objects_)
+- Attribute `OpenSoutheners\LaravelDto\Attributes\WithDefaultValue` (when using with `Illuminate\Contracts\Auth\Authenticatable` can be replaced by `OpenSoutheners\LaravelDto\Attributes\Authenticated`)
+- Artisan commands: `make:dto`, `dto:typescript`
+
 ## [3.7.0] - 2025-03-04
 
 ### Added

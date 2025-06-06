@@ -2,15 +2,16 @@
 
 namespace Workbench\App\DataTransferObjects;
 
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDto\DataTransferObject;
+use OpenSoutheners\LaravelDataMapper\Attributes\Authenticated;
+use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
 use stdClass;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\Post;
+use Workbench\App\Models\User;
 
-class CreatePostData extends DataTransferObject
+class CreatePostData implements RouteTransferableObject
 {
     public mixed $authorEmail = 'me@d8vjork.com';
 
@@ -19,28 +20,23 @@ class CreatePostData extends DataTransferObject
      */
     public function __construct(
         public string $title,
-        public array|null $tags,
+        public ?array $tags = null,
         public PostStatus $postStatus,
         public ?Post $post = null,
         public array|string|null $country = null,
         public $description = '',
         public ?Collection $subscribers = null,
-        public ?Authenticatable $currentUser = null,
+        #[Authenticated]
+        public ?User $currentUser = null,
         public ?Carbon $publishedAt = null,
         public ?stdClass $content = null,
         public ?Collection $dates = null,
         $authorEmail = null
     ) {
-        $this->authorEmail = $authorEmail;
-    }
-
-    /**
-     * Add default data to data transfer object.
-     */
-    public function withDefaults(): void
-    {
-        if (empty($this->tags)) {
+        if (count($this->tags) === 0) {
             $this->tags = ['generic', 'post'];
         }
+
+        $this->authorEmail = $authorEmail;
     }
 }
