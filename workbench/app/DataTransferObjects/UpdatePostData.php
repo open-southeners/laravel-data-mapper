@@ -10,7 +10,7 @@ class UpdatePostData
      * @param  string[]  $tags
      */
     public function __construct(
-        public ?Post $post_id,
+        public ?Post $post,
         public ?Post $parent = null,
         public array|string|null $country = null,
         public array $tags = [],

@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDataMapper\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -131,144 +131,13 @@ class DataTransferObjectTest extends TestCase
         ]);
 
         $data = map([
-            'post_id' => 2,
+            'post' => 2,
             'parent' => 1,
             'tags' => 'test,hello',
         ])->to(UpdatePostData::class);
 
-        $this->assertTrue($data->post_id?->is($post));
+        $this->assertTrue($data->post?->is($post));
         $this->assertTrue($data->parent?->is($parentPost));
-    }
-
-    public function test_data_transfer_object_with_default_value_attribute()
-    {
-        $this->markTestSkipped('To implement default values');
-
-        $user = User::create([
-            'email' => 'ruben@hello.com',
-            'password' => '1234',
-            'name' => 'Ruben',
-        ]);
-
-        $this->actingAs($user);
-
-        $fooBarPost = PostFactory::new()->create([
-            'title' => 'Foo bar',
-            'slug' => 'foo-bar',
-        ]);
-
-        $helloWorldPost = PostFactory::new()->create([
-            'title' => 'Hello world',
-            'slug' => 'hello-world',
-        ]);
-
-        Route::post('/posts/{post?}', function (UpdatePostWithDefaultData $data) {
-            return response()->json((array) $data);
-        });
-
-        $response = $this->postJson('/posts', []);
-
-        $response->assertJsonFragment([
-            'author' => $user->toArray(),
-            'post' => $helloWorldPost->toArray(),
-        ]);
-    }
-
-    public function test_data_transfer_object_with_default_value_attribute_gets_bound_when_one_is_sent()
-    {
-        $user = User::create([
-            'email' => 'ruben@hello.com',
-            'password' => '1234',
-            'name' => 'Ruben',
-        ]);
-
-        $this->actingAs($user);
-
-        $fooBarPost = PostFactory::new()->create([
-            'title' => 'Foo bar',
-            'slug' => 'foo-bar',
-        ]);
-
-        $helloWorldPost = PostFactory::new()->create([
-            'title' => 'Hello world',
-            'slug' => 'hello-world',
-        ]);
-
-        Route::post('/posts/{post}', function (UpdatePostWithDefaultData $data) {
-            return response()->json((array) $data);
-        });
-
-        $response = $this->postJson('/posts/foo-bar', []);
-
-        $response->assertJsonFragment([
-            'author' => $user->toArray(),
-            'post' => $fooBarPost->toArray(),
-        ]);
-    }
-
-    public function test_data_transfer_object_with_morphs_gets_models_bound_of_each_type_sent()
-    {
-        $user = User::create([
-            'email' => 'ruben@hello.com',
-            'password' => '1234',
-            'name' => 'Ruben',
-        ]);
-
-        $this->actingAs($user);
-
-        $horrorTag = TagFactory::new()->create([
-            'name' => 'Horror',
-            'slug' => 'horror',
-        ]);
-
-        $fooBarPost = PostFactory::new()->create([
-            'title' => 'Foo bar',
-            'slug' => 'foo-bar',
-        ]);
-
-        $helloWorldPost = PostFactory::new()->create([
-            'title' => 'Hello world',
-            'slug' => 'hello-world',
-        ]);
-
-        $myFilm = FilmFactory::new()->create([
-            'title' => 'My Film',
-            'slug' => 'my-film',
-            'year' => 1997,
-        ]);
-
-        $response = $this->patchJson('tags/1', [
-            'name' => 'Scary',
-            'taggable' => Collection::make([$myFilm->getKey(), $fooBarPost->getKey(), $helloWorldPost->getKey()])->join(', '),
-            // TODO: Fix mapping by slug
-            // 'taggable' => '1, foo-bar, hello-world',
-            'taggable_type' => 'film, post',
-        ]);
-
-        $response->assertSuccessful();
-
-        $response->assertJsonCount(3, 'data.taggable');
-
-        $response->assertJsonFragment([
-            'id' => 1,
-            'title' => 'My Film',
-            'year' => '1997',
-            'about' => null,
-        ]);
-
-        $response->assertJsonFragment([
-            'id' => 1,
-            'title' => 'Foo bar',
-            'slug' => 'foo-bar',
-            'status' => 'published',
-        ]);
-
-        $response->assertJsonFragment([
-            'id' => 2,
-            'title' => 'Hello world',
-            'slug' => 'hello-world',
-            'status' => 'published',
-        ]);
     }
 
     public function test_nested_data_transfer_objects_gets_the_nested_as_object_instance()

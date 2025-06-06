@@ -3,29 +3,23 @@
 namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use BackedEnum;
+use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
-use ReflectionEnum;
 
 final class BackedEnumDataMapper extends DataMapper
 {
-    /**
-     * Assert that this mapper resolves property with types given.
-     */
-    public function assert(MappingValue $mappingValue): bool
+    public function assert(MappingValue $mappingValue): array
     {
-        return is_subclass_of($mappingValue->preferredTypeClass, BackedEnum::class)
-            && gettype($mappingValue->data) === (new ReflectionEnum($mappingValue->preferredTypeClass))->getBackingType()->getName();
+        return [
+            is_string($mappingValue->data) || is_int($mappingValue->data),
+            is_subclass_of($mappingValue->objectClass, BackedEnum::class),
+        ];
     }
 
-    /**
-     * Resolve mapper that runs once assert returns true.
-     */
     public function resolve(MappingValue $mappingValue): void
     {
-        $mappingValue->data = $mappingValue->preferredTypeClass::tryFrom($mappingValue->data) ?? (
-            count($mappingValue->types) > 1
-                ? $mappingValue->data
-                : null
-        );
+        $mappingValue->data = $mappingValue->data instanceof Collection
+            ? $mappingValue->data->mapInto($mappingValue->objectClass)
+            : $mappingValue->objectClass::tryFrom($mappingValue->data);
     }
 }

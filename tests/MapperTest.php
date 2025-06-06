@@ -1,12 +1,11 @@
 <?php
 
-namespace OpenSoutheners\LaravelDataMapper\Tests\Unit;
+namespace OpenSoutheners\LaravelDataMapper\Tests;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection as DatabaseCollection;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\Support\TypeScript;
-use OpenSoutheners\LaravelDataMapper\Tests\Integration\TestCase;
 use stdClass;
 use Workbench\App\DataTransferObjects\UpdatePostWithDefaultData;
 use Workbench\App\Enums\PostStatus;

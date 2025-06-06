@@ -2,6 +2,8 @@
 
 namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use stdClass;
 
@@ -9,22 +11,23 @@ use function OpenSoutheners\ExtendedPhp\Strings\is_json_structure;
 
 final class GenericObjectDataMapper extends DataMapper
 {
-    /**
-     * Assert that this mapper resolves property with types given.
-     */
-    public function assert(MappingValue $mappingValue): bool
+    public function assert(MappingValue $mappingValue): array
     {
-        return $mappingValue->preferredTypeClass === stdClass::class
-            && (is_array($mappingValue->data) || is_json_structure($mappingValue->data));
+        return [
+            $mappingValue->objectClass === stdClass::class,
+            is_json_structure($mappingValue->data) || (is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data)) || (is_array($mappingValue->data[0] ?? null) && Arr::isAssoc($mappingValue->data[0])),
+        ];
     }
 
-    /**
-     * Resolve mapper that runs once assert returns true.
-     */
     public function resolve(MappingValue $mappingValue): void
     {
-        $mappingValue->data = is_array($mappingValue->data)
-            ? (object) $mappingValue->data
-            : json_decode($mappingValue->data);
+        $mappingValue->data = $mappingValue->data instanceof Collection
+            ? $mappingValue->data->map(fn($item) => $this->newObjectInstance($item))
+            : $this->newObjectInstance($mappingValue->data);
+    }
+    
+    protected function newObjectInstance(mixed $data): stdClass
+    {
+        return is_array($data) ? (object) $data : json_decode($data);
     }
 }

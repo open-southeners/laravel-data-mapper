@@ -3,10 +3,11 @@
 namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
 use Illuminate\Contracts\Container\ContextualAttribute;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use OpenSoutheners\LaravelDataMapper\Attributes\NormaliseProperties;
-use OpenSoutheners\LaravelDataMapper\Mapper;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 use OpenSoutheners\LaravelDataMapper\PropertyInfoExtractor;
 use ReflectionAttribute;
@@ -20,30 +21,23 @@ use function OpenSoutheners\LaravelDataMapper\map;
 
 final class ObjectDataMapper extends DataMapper
 {
-    /**
-     * Assert that this mapper resolves property with types given.
-     */
-    public function assert(MappingValue $mappingValue): bool
+    public function assert(MappingValue $mappingValue): array
     {
-        if (
-            ! $mappingValue->preferredTypeClass
-                || $mappingValue->preferredTypeClass === stdClass::class
-                || ! class_exists($mappingValue->preferredTypeClass)
-                || ! (new ReflectionClass($mappingValue->preferredTypeClass))->isInstantiable()
-        ) {
-            return false;
+        if (is_a($mappingValue->objectClass, Collection::class, true) || is_a($mappingValue->objectClass, Model::class, true)) {
+            return [false];
         }
-
-        return is_array($mappingValue->data)
-            && (is_string(array_key_first($mappingValue->data)) || is_json_structure($mappingValue->data));
+        
+        return [
+            $mappingValue->objectClass,
+            $mappingValue->objectClass !== stdClass::class && class_exists($mappingValue->objectClass) && (new ReflectionClass($mappingValue->objectClass))->isInstantiable(),
+            is_string($mappingValue->data) && is_json_structure($mappingValue->data),
+            is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data),
+        ];
     }
 
-    /**
-     * Resolve mapper that runs once assert returns true.
-     */
     public function resolve(MappingValue $mappingValue): void
     {
-        $class = new ReflectionClass($mappingValue->preferredTypeClass);
+        $class = new ReflectionClass($mappingValue->objectClass);
 
         $data = [];
 
@@ -99,7 +93,7 @@ final class ObjectDataMapper extends DataMapper
             };
         }
 
-        $mappingValue->data = new $mappingValue->preferredTypeClass(...$data);
+        $mappingValue->data = new $mappingValue->objectClass(...$data);
     }
 
     /**
@@ -123,8 +117,8 @@ final class ObjectDataMapper extends DataMapper
         $camelKey = Str::camel($key);
 
         return match (true) {
-            property_exists($mappingValue->preferredTypeClass, $key) => $key,
-            property_exists($mappingValue->preferredTypeClass, $camelKey) => $camelKey,
+            property_exists($mappingValue->objectClass, $key) => $key,
+            property_exists($mappingValue->objectClass, $camelKey) => $camelKey,
             default => null
         };
     }

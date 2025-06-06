@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
 use OpenSoutheners\LaravelDataMapper\Attributes\Validate;
 use OpenSoutheners\LaravelDataMapper\Contracts\RouteTransferableObject;
+use OpenSoutheners\LaravelDataMapper\Mappers;
 use ReflectionClass;
 
 class ServiceProvider extends BaseServiceProvider
@@ -14,7 +15,6 @@ class ServiceProvider extends BaseServiceProvider
         Mappers\MapeableObjectMapper::class,
         Mappers\CollectionDataMapper::class,
         Mappers\ModelDataMapper::class,
-
         Mappers\CarbonDataMapper::class,
         Mappers\BackedEnumDataMapper::class,
         Mappers\GenericObjectDataMapper::class,
@@ -68,10 +68,16 @@ class ServiceProvider extends BaseServiceProvider
     /**
      * Get dynamic mappers.
      *
-     * @return array<class-string<DataMapper>>
+     * @return array<Mappers\DataMapper>
      */
     public static function getMappers(): array
     {
-        return static::$mappers;
+        $mapperInstances = [];
+        
+        foreach (static::$mappers as $mapper) {
+            $mapperInstances[] = app()->make($mapper);
+        }
+        
+        return $mapperInstances;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDataMapper\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;

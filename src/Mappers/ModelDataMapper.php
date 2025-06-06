@@ -16,13 +16,12 @@ use function OpenSoutheners\LaravelDataMapper\map;
 
 final class ModelDataMapper extends DataMapper
 {
-    /**
-     * Assert that this mapper resolves property with types given.
-     */
-    public function assert(MappingValue $mappingValue): bool
+    public function assert(MappingValue $mappingValue): array
     {
-        return $mappingValue->preferredTypeClass === Model::class
-            || is_subclass_of($mappingValue->preferredTypeClass, Model::class);
+        return [
+            is_array($mappingValue->originalData) || is_string($mappingValue->originalData) || is_int($mappingValue->originalData),
+            is_a($mappingValue->objectClass, Model::class, true),
+        ];
     }
 
     /**
@@ -32,7 +31,7 @@ final class ModelDataMapper extends DataMapper
     {
         if (is_array($mappingValue->data) && Arr::isAssoc($mappingValue->data)) {
             /** @var Model $modelInstance */
-            $modelInstance = new $mappingValue->preferredTypeClass;
+            $modelInstance = new $mappingValue->objectClass;
 
             foreach ($mappingValue->data as $key => $value) {
                 if ($modelInstance->isRelation($key) && $modelInstance->$key() instanceof BelongsTo) {
@@ -58,16 +57,23 @@ final class ModelDataMapper extends DataMapper
         if (is_string($mappingValue->data) && str_contains($mappingValue->data, ',')) {
             $mappingValue->data = array_filter(explode(',', $mappingValue->data));
         }
-
-        if (count($mappingValue->types) <= 1) {
-            $mappingValue->data = $this->resolveIntoModelInstance($mappingValue->data, $mappingValue->preferredTypeClass);
-        }
+        
+        $mappingValue->data = $this->resolveIntoModelInstance($mappingValue->data, $mappingValue->objectClass);
 
         if ($mappingValue->collectClass === Collection::class) {
             $mappingValue->data = $mappingValue->data instanceof DatabaseCollection
                 ? $mappingValue->data->toBase()
                 : Collection::make($mappingValue->data);
         }
+        
+        if ($mappingValue->collectClass === 'array') {
+            $mappingValue->data = $mappingValue->data->all();
+        }
+        
+        // TODO: Move to ObjectDataMapper
+        // if (count($mappingValue->types) <= 1) {
+        //     $mappingValue->data = $this->resolveIntoModelInstance($mappingValue->data, $mappingValue->objectClass);
+        // }
 
         // $resolveModelAttributeReflector = $mappingValue->property->getAttributes(ResolveModel::class);
 

@@ -4,7 +4,7 @@ namespace OpenSoutheners\LaravelDataMapper\Tests\Unit;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
-use OpenSoutheners\LaravelDataMapper\Tests\Integration\TestCase;
+use OpenSoutheners\LaravelDataMapper\Tests\TestCase;
 use Workbench\App\DataTransferObjects\CreateComment;
 use Workbench\App\DataTransferObjects\CreateManyPostData;
 use Workbench\App\DataTransferObjects\CreatePostData;

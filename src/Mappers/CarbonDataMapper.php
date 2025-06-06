@@ -5,32 +5,38 @@ namespace OpenSoutheners\LaravelDataMapper\Mappers;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
 
 final class CarbonDataMapper extends DataMapper
 {
-    /**
-     * Assert that this mapper resolves property with types given.
-     */
-    public function assert(MappingValue $mappingValue): bool
+    public function assert(MappingValue $mappingValue): array
     {
-        return in_array(gettype($mappingValue->data), ['string', 'integer'], true)
-            && ($mappingValue->preferredTypeClass === CarbonInterface::class
-                || is_subclass_of($mappingValue->preferredTypeClass, CarbonInterface::class));
+        return [
+            is_a($mappingValue->objectClass, CarbonInterface::class, true),
+            in_array(gettype($mappingValue->data), ['string', 'integer'], true),
+            is_iterable($mappingValue->data),
+        ];
     }
 
-    /**
-     * Resolve mapper that runs once assert returns true.
-     */
     public function resolve(MappingValue $mappingValue): void
     {
-        $mappingValue->data = match (true) {
-            gettype($mappingValue->data) === 'integer' || is_numeric($mappingValue->data) => Carbon::createFromTimestamp($mappingValue->data),
-            default => Carbon::make($mappingValue->data),
+        $mappingValue->data = is_array($mappingValue->data) || $mappingValue->data instanceof Collection
+            ? Collection::make($mappingValue->data)->map(fn ($item) => $this->resolveCarbon($item, $mappingValue->objectClass))
+            : $this->resolveCarbon($mappingValue->data, $mappingValue->objectClass);
+    }
+    
+    private function resolveCarbon($value, string $objectClass): CarbonInterface
+    {
+        $carbonObject = match (true) {
+            gettype($value) === 'integer' || is_numeric($value) => Carbon::createFromTimestamp($value),
+            default => Carbon::make($value),
         };
 
-        if ($mappingValue->preferredTypeClass === CarbonImmutable::class) {
-            $mappingValue->data = $mappingValue->data->toImmutable();
+        if ($objectClass === CarbonImmutable::class) {
+            return $carbonObject->toImmutable();
         }
+        
+        return $carbonObject;
     }
 }

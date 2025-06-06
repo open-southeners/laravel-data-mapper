@@ -1,6 +1,6 @@
 <?php
 
-namespace OpenSoutheners\LaravelDataMapper\Tests\Integration;
+namespace OpenSoutheners\LaravelDataMapper\Tests;
 
 use Orchestra\Testbench\Concerns\WithWorkbench;
 
@@ -37,6 +37,6 @@ class TestCase extends \Orchestra\Testbench\TestCase
             'prefix' => '',
         ]);
 
-        $app['config']->set('data-mapper', include_once __DIR__.'/../../config/data-mapper.php');
+        $app['config']->set('data-mapper', include_once __DIR__.'/../config/data-mapper.php');
     }
 }

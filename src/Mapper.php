@@ -2,6 +2,8 @@
 
 namespace OpenSoutheners\LaravelDataMapper;
 
+use ArrayAccess;
+use Countable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
@@ -21,17 +23,9 @@ final class Mapper
 
     protected ?string $throughClass = null;
 
-    protected ?MappingValue $fromMappingValue = null;
-
-    protected ?string $property = null;
-
-    protected array $propertyTypes = [];
-
-    protected bool $runningFromMapper = false;
-
     public function __construct(mixed $input)
     {
-        if (is_array($input) && count($input) === 1) {
+        if ((is_array($input) || $input instanceof Countable) && count($input) === 1) {
             $input = reset($input);
         }
 
@@ -62,7 +56,7 @@ final class Mapper
                 is_object($input->route()) ? $input->route()->parameters() : [],
                 $input instanceof FormRequest ? $input->validated() : $input->all()
             ),
-            $input instanceof Collection => $input->all(),
+            $input instanceof Collection => $input,
             $input instanceof Model => $input,
             is_object($input) => $this->extractProperties($input),
             default => $input,
@@ -88,24 +82,35 @@ final class Mapper
     public function to(?string $output = null)
     {
         $output ??= $this->dataClass;
-
-        // if (is_array($this->data)) {
-        //     $reflectionClass = $this->fromMappingValue?->class ?? $output ? new ReflectionClass($output) : null;
-        // } else {
-        //     $reflectionClass = $output ? new ReflectionClass($output) : null;
-        // }
-
-        $mappingDataValue = new MappingValue(
+        
+        if (!$this->throughClass && (is_array($this->data) || $this->data instanceof Collection)) {
+            $this->throughClass = is_array($this->data) ? 'array' : Collection::class;
+        }
+        
+        $mappingValue = new MappingValue(
             data: $this->data,
-            allMappingData: (! $this->runningFromMapper ? $this->fromMappingValue?->allMappingData : $this->data) ?? [],
-            types: $this->propertyTypes,
             objectClass: $output,
             collectClass: $this->throughClass,
         );
+        
+        $mapper = Collection::make(ServiceProvider::getMappers())
+            ->map(fn ($mapper) => ['mapper' => $mapper, 'score' => $mapper->score($mappingValue)])
+            ->sortByDesc('score')
+            // ->dd()
+            ->first();
+        
+        // dump($mappingValue);
+        // dump($mapper);
+        // if ($this->data instanceof Collection) {
+        //     return;
+        // }
+        // 
+        if (!$mapper || $mapper['score'] === 0) {
+            return $mappingValue->data;
+        }
+        
+        $mapper = $mapper['mapper'];
 
-        return app(Pipeline::class)
-            ->through(ServiceProvider::getMappers())
-            ->send($mappingDataValue)
-            ->then(fn (MappingValue $mappingValue) => $mappingValue->data);
+        return $mapper($mappingValue);
     }
 }

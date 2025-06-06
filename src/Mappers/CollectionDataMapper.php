@@ -11,16 +11,17 @@ use function OpenSoutheners\LaravelDataMapper\map;
 
 final class CollectionDataMapper extends DataMapper
 {
-    /**
-     * Assert that this mapper resolves property with types given.
-     */
-    public function assert(MappingValue $mappingValue): bool
+    public function assert(MappingValue $mappingValue): array
     {
-        return $mappingValue->collectClass === 'array'
-            || ($mappingValue->collectClass === Collection::class && is_array($mappingValue->data))
-            || ($mappingValue->collectClass === Collection::class && is_string($mappingValue->data) && str_contains($mappingValue->data, ','))
-            || $mappingValue->objectClass === Collection::class
-            || $mappingValue->objectClass === EloquentCollection::class;
+        if (is_a($mappingValue->objectClass, Collection::class, true)) {
+            return [true];
+        }
+
+        return [
+            !is_a($mappingValue->data, Collection::class),
+            $mappingValue->collectClass === 'array' || $mappingValue->collectClass === Collection::class,
+            $mappingValue->collectClass === Collection::class && is_array($mappingValue->data) || $mappingValue->collectClass === Collection::class && is_string($mappingValue->data) && str_contains($mappingValue->data, ','),
+        ];
     }
 
     /**
@@ -42,16 +43,12 @@ final class CollectionDataMapper extends DataMapper
         
         $collection = $collection->filter();
         
-        if ($mappingValue->collectClass === 'array') {
-            $mappingValue->data = $collection->all();
-            
-            return;
-        }
-
         if ($mappingValue->objectClass && $mappingValue->objectClass !== Collection::class) {
-            $collection = $collection->map(fn ($value) => map($value)->to($mappingValue->objectClass));
+            $collection = map($collection)->to($mappingValue->objectClass);
         }
 
-        $mappingValue->data = $collection;
+        $mappingValue->data = $mappingValue->collectClass === 'array'
+            ? $collection->all()
+            : $collection;
     }
 }
