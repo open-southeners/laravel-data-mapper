@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Collection as DatabaseCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use OpenSoutheners\LaravelDataMapper\Attributes\ResolveModel;
 use OpenSoutheners\LaravelDataMapper\MappingValue;
+use ReflectionMethod;
+use ReflectionNamedType;
 
 use function OpenSoutheners\LaravelDataMapper\map;
 
@@ -37,14 +40,16 @@ class ModelDataMapper extends DataMapper
             $modelInstance = new $mappingValue->objectClass;
 
             foreach ($mappingValue->data as $key => $value) {
-                if ($modelInstance->isRelation($key) && $modelInstance->$key() instanceof BelongsTo) {
-                    $modelInstance->$key()->associate($value);
+                $relation = $this->relationFor($modelInstance, $key);
+
+                if ($relation instanceof BelongsTo) {
+                    $relation->associate($value);
 
                     continue;
                 }
 
-                if ($modelInstance->isRelation($key) && $modelInstance->$key() instanceof HasMany) {
-                    $modelInstance->setRelation($key, map($value)->to(get_class($modelInstance->$key()->getModel())));
+                if ($relation instanceof HasMany) {
+                    $modelInstance->setRelation($key, map($value)->to(get_class($relation->getModel())));
 
                     continue;
                 }
@@ -168,6 +173,47 @@ class ModelDataMapper extends DataMapper
         // )
         // ->mapToGroups(fn (array $value) => [$value[1] => $value[0]])
         // ->flatMap(fn (Collection $keys, string $model) => $this->resolveIntoModelInstance($keys, $model, $mappingValue->property->getName(), $modelWithAttributes, $resolveModelAttribute));
+    }
+
+    /**
+     * Get the relation an input key names on the model, if any.
+     *
+     * Input keys are untrusted, so a key only counts as a relation when it's a
+     * registered relation resolver or a public, argument-less method whose
+     * declared return type is a `Relation`. Eloquent's own `isRelation()` is
+     * just `method_exists()`, which would let a key like `save` or `delete`
+     * invoke that method.
+     *
+     * @return Relation<Model, Model, mixed>|null
+     */
+    protected function relationFor(Model $model, string $key): ?Relation
+    {
+        if ($model->relationResolver($model::class, $key)) {
+            $relation = $model->$key();
+
+            return $relation instanceof Relation ? $relation : null;
+        }
+
+        if (! method_exists($model, $key)) {
+            return null;
+        }
+
+        $method = new ReflectionMethod($model, $key);
+        $returnType = $method->getReturnType();
+
+        if (
+            ! $method->isPublic()
+            || $method->isStatic()
+            || $method->getNumberOfRequiredParameters() > 0
+            || ! $returnType instanceof ReflectionNamedType
+            || ! is_a($returnType->getName(), Relation::class, true)
+        ) {
+            return null;
+        }
+
+        $relation = $model->$key();
+
+        return $relation instanceof Relation ? $relation : null;
     }
 
     /**

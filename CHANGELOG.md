@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mappingFrom()` on mappable objects now returns the mapping result instead of mutating the mapping value
 - `MapeableObject` interface renamed to `MappableObject`
 - Package config is now merged automatically (`mergeConfigFrom`), so `config('data-mapper.*')` resolves its defaults without requiring `vendor:publish` first
+- **Breaking:** when mapping an array onto a model, only methods with a declared `Relation` return type (or relations registered with `resolveRelationUsing()`) are treated as relations; keys matching untyped relation methods are filled as attributes
 
 ### Fixed
 
@@ -34,6 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `#[Authenticated]`/`#[Inject]` (and any other container contextual attribute) on a DTO property no longer crashes on Laravel 13, where the container's attribute resolution requires an extra argument the package wasn't passing; a non-promoted property carrying one of these attributes now raises a clear error instead of a confusing argument-count crash
 - An untyped/`mixed`-generic `array`/`Collection` DTO property (no docblock generic to map each item against) no longer throws — the raw value is kept as-is, still wrapped into the declared collection type
 - TypeScript generation (`map($dto)->to(TypeScript::class)`) no longer mislabels members of a union-typed property (e.g. `parent: Post | Tag | null`) with the name of whichever class happened to be processed last
+
+### Security
+
+- Input keys that name a model method (such as `save` or `delete`) no longer call that method when an array is mapped onto a model; with request input this let a client trigger model methods, including writing to the database
 
 ### Removed
 
