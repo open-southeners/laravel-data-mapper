@@ -7,6 +7,74 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Mapper registry**: custom mappers are now registered on the `MapperRegistry` container singleton with an explicit priority (`register(MyMapper::class, priority: 100)`), and higher-priority mappers win over built-ins for the same input
+- `MappingResolved` event dispatched on every mapping resolution, carrying the winning mapper class and the mapping context — replaces the previous debug logging
+- Mapping context now carries the target property, a dot-notation `path` (e.g. `tags.2`) for nested mappings, and the set of provided input keys
+- `map_arrays_through` config option: set it to `Collection::class` to get collections instead of plain arrays when mapping array input without an explicit `->through()`; inline `->through()` always takes precedence
+- **Instance passthrough**: mapping a value that's already an instance of the target class (a `Model`, an enum, a `Carbon`, a hydrated DTO, ...) now hands it back as-is instead of destructuring and re-hydrating it — restores v3 behaviour for `map($user)->to(User::class)`, re-mapping an already-mapped DTO, and nested object/enum/date properties that arrive pre-typed
+- All 7 built-in mappers (`ObjectDataMapper`, `CollectionDataMapper`, `ModelDataMapper`, `GenericObjectDataMapper`, `MappableObjectMapper`, `BackedEnumDataMapper`, `CarbonDataMapper`) are no longer `final`, so a subclass can be registered at a higher priority to override or extend built-in behaviour without copying the whole implementation
+- Mapping a plain array/collection of associative arrays straight to a DTO class now works: `map([['name' => 'a'], ['name' => 'b']])->through(Collection::class)->to(SomeDto::class)` yields a `Collection<SomeDto>` (each item mapped individually), and the same applies to `->through('array')` and to `Collection<Model>`-typed properties fed a collection of already-hydrated models (which skip re-querying)
+- `Concerns\SerializesMapping` trait: opt-in `__serialize()`/`__unserialize()` for mapped DTOs so they can be queued safely — public properties collapse to plain scalars (`Model` → key, `Collection`/array of models → array of keys, backed enum → value, `Carbon` → ISO-8601 string, nested DTO using the trait → recurses) and are rebuilt on the way back through the normal mapper pipeline, so a queued job payload never embeds full Eloquent attribute data
+- Native `DateTime`, `DateTimeImmutable` and `DateTimeInterface` properties now map from date strings and timestamps (as `Carbon` / `CarbonImmutable` instances)
+
+### Changed
+
+- Mapper selection is now deterministic: the first registered mapper (by descending priority) whose `supports()` check passes handles the value — replacing the previous assertion-scoring system, so the same input and target class always resolve to the same mapper
+- `map()` now takes a single argument; pass multiple values as an array (`map([1, 2])` instead of `map(1, 2)`), and single-element arrays are no longer unwrapped implicitly
+- `mappingFrom()` on mappable objects now returns the mapping result instead of mutating the mapping value
+- `MapeableObject` interface renamed to `MappableObject`
+- Package config is now merged automatically (`mergeConfigFrom`), so `config('data-mapper.*')` resolves its defaults without requiring `vendor:publish` first
+- **Breaking:** an unknown backed-enum value now throws a `ValueError` naming the enum and the value, instead of silently mapping to `null`
+- **Breaking:** when mapping an array onto a model, only methods with a declared `Relation` return type (or relations registered with `resolveRelationUsing()`) are treated as relations; keys matching untyped relation methods are filled as attributes
+- `user_id`-style keys now fill a camelCase `$userId` property when one exists, falling back to `$user` as before
+
+### Fixed
+
+- Mapping an array into an explicitly `Collection`-typed target (including plain `Collection` DTO properties without docblock generics) no longer returns a plain array — the explicit target now takes precedence over the `map_arrays_through` inference
+- Mapping a value no mapper can handle now throws `NoMapperFoundException` (with the input type and target class in the message) instead of silently returning the input unmapped
+- Date mapping to `Carbon`/`CarbonImmutable` no longer competes against unrelated mappers due to contradictory internal assertions
+- `#[Authenticated]`/`#[Inject]` (and any other container contextual attribute) on a DTO property no longer crashes on Laravel 13, where the container's attribute resolution requires an extra argument the package wasn't passing; a non-promoted property carrying one of these attributes now raises a clear error instead of a confusing argument-count crash
+- An untyped/`mixed`-generic `array`/`Collection` DTO property (no docblock generic to map each item against) no longer throws — the raw value is kept as-is, still wrapped into the declared collection type
+- TypeScript generation (`map($dto)->to(TypeScript::class)`) no longer mislabels members of a union-typed property (e.g. `parent: Post | Tag | null`) with the name of whichever class happened to be processed last
+- List properties of built-in types (`array<int>`, `array<string>`, ...) keep their items instead of throwing `NoMapperFoundException`
+- Falsy list items (`0`, `''`, `'0'`, `false`) are kept; only `null` items are dropped
+- A single id mapped to a list-of-models property (`array<User>`, `Collection<int, User>`) resolves to a one-item list, instead of loading every row of the table or returning the model's attributes
+- Mapping to a `Collection` subclass, including Eloquent's `Collection`, returns an instance of that class instead of crashing
+- Public DTO properties that aren't constructor parameters are set after construction instead of failing with `Unknown named parameter`
+
+### Security
+
+- Input keys that name a model method (such as `save` or `delete`) no longer call that method when an array is mapped onto a model; with request input this let a client trigger model methods, including writing to the database
+
+### Removed
+
+- **Breaking:** dead `types_generation.*` config keys removed — the `dto:typescript`/type-generation commands they configured were already removed in 4.0.0
+
+
+## [4.0.0] - 2025-06-08
+
+### Added
+
+- Attribute `OpenSoutheners\LaravelDto\Attributes\Inject` to inject container stuff
+- Attribute `OpenSoutheners\LaravelDto\Attributes\Authenticated` that uses base `Illuminate\Container\Attributes\Authenticated` to inject current authenticated user
+- Ability to register custom mappers (extending package functionality)
+- `OpenSoutheners\LaravelDto\Contracts\MapeableObject` interface to add custom mapping logic to your own objects classes
+- ObjectMapper now extracts type info from generics inside collections typed properties [#1]
+
+### Changed
+
+- Package renamed to `open-southeners/laravel-data-mapper`
+- Config file changed and renamed to `config/data-mapper.php` (publish the new one using `php artisan vendor:publish --tag="laravel-data-mapper"`)
+- Full refactor [#7]
+
+### Removed
+
+- Abstract class `OpenSoutheners\LaravelDto\DataTransferObject` (using POPO which means _Plain Old Php Objects_)
+- Attribute `OpenSoutheners\LaravelDto\Attributes\WithDefaultValue` (when using with `Illuminate\Contracts\Auth\Authenticatable` can be replaced by `OpenSoutheners\LaravelDto\Attributes\Authenticated`)
+- Artisan commands: `make:dto`, `dto:typescript`
+
 ## [3.8.0] - 2026-04-13
 
 ### Added
