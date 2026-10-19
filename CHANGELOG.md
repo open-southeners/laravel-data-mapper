@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `mappingFrom()` on mappable objects now returns the mapping result instead of mutating the mapping value
 - `MapeableObject` interface renamed to `MappableObject`
 - Package config is now merged automatically (`mergeConfigFrom`), so `config('data-mapper.*')` resolves its defaults without requiring `vendor:publish` first
+- **Breaking:** an unknown backed-enum value now throws a `ValueError` naming the enum and the value, instead of silently mapping to `null`
 - **Breaking:** when mapping an array onto a model, only methods with a declared `Relation` return type (or relations registered with `resolveRelationUsing()`) are treated as relations; keys matching untyped relation methods are filled as attributes
 - `user_id`-style keys now fill a camelCase `$userId` property when one exists, falling back to `$user` as before
 

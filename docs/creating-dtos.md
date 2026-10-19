@@ -24,7 +24,7 @@ final class CreatePostData
 ## Mapped data types
 
 * Delimited lists (`1,3,7` or `hello-world,foo,bar`) convert to arrays or collections, including collections of a typed child (models, dates, enums, nested DTOs).
-* Enum backed values convert to native PHP enums.
+* Enum backed values convert to native PHP enums. A value the enum doesn't have throws a `ValueError`.
 * Dates in string form (`2023-09-07 06:35:53`) convert to `Carbon`/`CarbonImmutable` instances.
 * Eloquent models: typing a property as a model class queries that model by primary key (or `whereIn` for a collection/array of keys) when the instance isn't already passed through. Customising the lookup key, eager-loading relationships, and morph binding — all documented in the old v3 docs under "Models binding" — aren't wired up yet on v4; see [`CURRENT_ISSUES.md`](https://github.com/open-southeners/laravel-data-mapper/blob/v4-refactor/CURRENT_ISSUES.md) in the package repo before relying on `#[ResolveModel]`/`#[ModelWith]` for anything beyond a plain key lookup.
 * An input that's already an instance of the target class (a `Model`, an enum, a `Carbon`, a hydrated DTO, …) is handed back as-is instead of being destructured and re-hydrated.

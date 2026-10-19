@@ -16,8 +16,11 @@ class BackedEnumDataMapper extends DataMapper
 
     public function resolve(MappingValue $mappingValue): mixed
     {
+        // `from()` rather than `tryFrom()`: an unknown value raises a
+        // `ValueError` naming the enum and the value, instead of a `null` that
+        // only fails later as a confusing constructor `TypeError`.
         return $mappingValue->data instanceof Collection
-            ? $mappingValue->data->mapInto($mappingValue->objectClass)
-            : $mappingValue->objectClass::tryFrom($mappingValue->data);
+            ? $mappingValue->data->map(fn ($value) => $mappingValue->objectClass::from($value))
+            : $mappingValue->objectClass::from($mappingValue->data);
     }
 }

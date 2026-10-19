@@ -4,6 +4,8 @@ namespace OpenSoutheners\LaravelDataMapper\Tests;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use ValueError;
+use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\User;
 use Workbench\Database\Factories\UserFactory;
 
@@ -95,6 +97,14 @@ class MappingEdgeCasesTest extends TestCase
         $this->assertFalse((new \ReflectionProperty($result, 'locked'))->isInitialized($result));
     }
 
+    public function test_invalid_enum_value_raises_value_error()
+    {
+        $this->expectException(ValueError::class);
+        $this->expectExceptionMessage('"nope" is not a valid backing value');
+
+        map(['status' => 'nope'])->to(EdgeCaseEnumDto::class);
+    }
+
     public function test_snake_case_id_key_maps_to_camel_case_id_property()
     {
         $result = map(['user_id' => 5, 'author_id' => 'x'])->to(EdgeCaseSnakeIdDto::class);
@@ -135,6 +145,14 @@ class EdgeCaseExtraPropertyDto
     public readonly string $locked;
 
     public function __construct(public string $name)
+    {
+        //
+    }
+}
+
+class EdgeCaseEnumDto
+{
+    public function __construct(public PostStatus $status)
     {
         //
     }
