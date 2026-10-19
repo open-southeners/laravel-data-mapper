@@ -7,6 +7,9 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
+use OpenSoutheners\LaravelDataMapper\MapperRegistry;
+use OpenSoutheners\LaravelDataMapper\Mappers\DataMapper;
+use OpenSoutheners\LaravelDataMapper\MappingValue;
 use ValueError;
 use Workbench\App\Enums\PostStatus;
 use Workbench\App\Models\User;
@@ -125,6 +128,15 @@ class MappingEdgeCasesTest extends TestCase
         $this->assertInstanceOf(DateTime::class, $result->mutable);
         $this->assertSame('2024-01-04', $result->any->format('Y-m-d'));
     }
+
+    public function test_mapper_registered_after_a_lookup_is_still_considered()
+    {
+        map('published')->to(PostStatus::class);
+
+        app(MapperRegistry::class)->register(EdgeCaseOverrideEnumMapper::class, 1000);
+
+        $this->assertSame('overridden', map('published')->to(PostStatus::class));
+    }
 }
 
 class EdgeCaseScalarListDto
@@ -193,4 +205,17 @@ class EdgeCaseDateDto
 class EdgeCaseCollection extends Collection
 {
     //
+}
+
+class EdgeCaseOverrideEnumMapper extends DataMapper
+{
+    public function supports(MappingValue $mappingValue): bool
+    {
+        return $mappingValue->objectClass === PostStatus::class;
+    }
+
+    public function resolve(MappingValue $mappingValue): mixed
+    {
+        return 'overridden';
+    }
 }

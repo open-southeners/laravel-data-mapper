@@ -15,6 +15,13 @@ final class MapperRegistry
     protected array $instances = [];
 
     /**
+     * Sorted mapper instances, rebuilt on the next lookup after a registration.
+     *
+     * @var array<int, Mappers\DataMapper>|null
+     */
+    protected ?array $sorted = null;
+
+    /**
      * Register a mapper with the given priority.
      *
      * Higher priority mappers are considered first when resolving, ties are
@@ -23,6 +30,7 @@ final class MapperRegistry
     public function register(string|Mappers\DataMapper $mapper, int $priority = 0): void
     {
         $this->registrations[] = compact('mapper', 'priority');
+        $this->sorted = null;
     }
 
     /**
@@ -47,11 +55,15 @@ final class MapperRegistry
      */
     public function all(): array
     {
+        if ($this->sorted !== null) {
+            return $this->sorted;
+        }
+
         $registrations = $this->registrations;
 
         usort($registrations, fn (array $a, array $b) => $b['priority'] <=> $a['priority']);
 
-        return array_map(
+        return $this->sorted = array_map(
             fn (array $registration) => $this->resolveInstance($registration['mapper']),
             $registrations
         );

@@ -33,6 +33,9 @@ class ServiceProvider extends BaseServiceProvider
 
             return $registry;
         });
+
+        $this->app->singleton(PropertyInfoExtractor::class);
+        $this->app->alias(PropertyInfoExtractor::class, 'propertyInfo');
     }
 
     /**
@@ -64,8 +67,5 @@ class ServiceProvider extends BaseServiceProvider
                 });
             }
         );
-
-        $this->app->instance(PropertyInfoExtractor::class, new PropertyInfoExtractor);
-        $this->app->alias(PropertyInfoExtractor::class, 'propertyInfo');
     }
 }
