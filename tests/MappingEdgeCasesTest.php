@@ -2,6 +2,9 @@
 
 namespace OpenSoutheners\LaravelDataMapper\Tests;
 
+use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use ValueError;
@@ -112,6 +115,16 @@ class MappingEdgeCasesTest extends TestCase
         $this->assertSame(5, $result->userId);
         $this->assertSame('x', $result->authorId);
     }
+
+    public function test_native_date_time_targets()
+    {
+        $result = map(['at' => '2024-01-02', 'mutable' => '2024-01-03', 'any' => '2024-01-04'])->to(EdgeCaseDateDto::class);
+
+        $this->assertInstanceOf(DateTimeImmutable::class, $result->at);
+        $this->assertSame('2024-01-02', $result->at->format('Y-m-d'));
+        $this->assertInstanceOf(DateTime::class, $result->mutable);
+        $this->assertSame('2024-01-04', $result->any->format('Y-m-d'));
+    }
 }
 
 class EdgeCaseScalarListDto
@@ -162,6 +175,17 @@ class EdgeCaseSnakeIdDto
 {
     public function __construct(public ?int $userId = null, public ?string $authorId = null)
     {
+        //
+    }
+}
+
+class EdgeCaseDateDto
+{
+    public function __construct(
+        public DateTimeImmutable $at,
+        public DateTime $mutable,
+        public DateTimeInterface $any,
+    ) {
         //
     }
 }

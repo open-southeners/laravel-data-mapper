@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All 7 built-in mappers (`ObjectDataMapper`, `CollectionDataMapper`, `ModelDataMapper`, `GenericObjectDataMapper`, `MappableObjectMapper`, `BackedEnumDataMapper`, `CarbonDataMapper`) are no longer `final`, so a subclass can be registered at a higher priority to override or extend built-in behaviour without copying the whole implementation
 - Mapping a plain array/collection of associative arrays straight to a DTO class now works: `map([['name' => 'a'], ['name' => 'b']])->through(Collection::class)->to(SomeDto::class)` yields a `Collection<SomeDto>` (each item mapped individually), and the same applies to `->through('array')` and to `Collection<Model>`-typed properties fed a collection of already-hydrated models (which skip re-querying)
 - `Concerns\SerializesMapping` trait: opt-in `__serialize()`/`__unserialize()` for mapped DTOs so they can be queued safely — public properties collapse to plain scalars (`Model` → key, `Collection`/array of models → array of keys, backed enum → value, `Carbon` → ISO-8601 string, nested DTO using the trait → recurses) and are rebuilt on the way back through the normal mapper pipeline, so a queued job payload never embeds full Eloquent attribute data
+- Native `DateTime`, `DateTimeImmutable` and `DateTimeInterface` properties now map from date strings and timestamps (as `Carbon` / `CarbonImmutable` instances)
 
 ### Changed
 
