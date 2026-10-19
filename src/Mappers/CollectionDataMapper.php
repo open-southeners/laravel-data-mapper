@@ -2,7 +2,6 @@
 
 namespace OpenSoutheners\LaravelDataMapper\Mappers;
 
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
@@ -46,23 +45,28 @@ class CollectionDataMapper extends DataMapper
      */
     public function resolve(MappingValue $mappingValue): mixed
     {
-        if ($mappingValue->objectClass === EloquentCollection::class) {
-            return $mappingValue->data->toBase();
-        }
-
         $collection = match (true) {
             is_string($mappingValue->data) && is_json_structure($mappingValue->data) => Collection::make(json_decode($mappingValue->data, true)),
-            is_string($mappingValue->data) => Collection::make(explode(',', $mappingValue->data)),
+            is_string($mappingValue->data) => Collection::make(explode(',', $mappingValue->data))->reject(fn ($item) => $item === ''),
             default => Collection::make($mappingValue->data),
         };
 
-        // Falsy items (including `null`) are dropped rather than mapped: there is
-        // no sensible target instance for an empty slot, and callers filtering
-        // "holes" out of a payload (e.g. `[1, null, 2]`) expect them gone rather
-        // than surfaced as an error.
-        $collection = $collection->filter();
+        // `null` items are dropped rather than mapped: there is no sensible
+        // target instance for an empty slot, and callers filtering "holes" out
+        // of a payload (e.g. `[1, null, 2]`) expect them gone rather than
+        // surfaced as an error. Other falsy values (`0`, `''`, `false`) are
+        // real data and kept.
+        $collection = $collection->reject(fn ($item) => $item === null);
 
-        if ($mappingValue->objectClass && $mappingValue->objectClass !== Collection::class) {
+        // A collection class as the target is the container itself, not the
+        // type of each item: hand back an instance of that exact class.
+        if (is_a($mappingValue->objectClass, Collection::class, true)) {
+            return $mappingValue->objectClass::make($collection->all());
+        }
+
+        // Built-in item types (`array<int>`, `array<string>`, ...) have no
+        // mapper of their own, so their items are kept as given.
+        if ($mappingValue->objectClass && (class_exists($mappingValue->objectClass) || interface_exists($mappingValue->objectClass))) {
             // Each item is mapped on its own through `map()->to()` instead of
             // re-dispatching the whole wrapped collection to a single mapper
             // call. This lets item targets that only understand one value at a

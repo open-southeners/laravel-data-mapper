@@ -35,7 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `#[Authenticated]`/`#[Inject]` (and any other container contextual attribute) on a DTO property no longer crashes on Laravel 13, where the container's attribute resolution requires an extra argument the package wasn't passing; a non-promoted property carrying one of these attributes now raises a clear error instead of a confusing argument-count crash
 - An untyped/`mixed`-generic `array`/`Collection` DTO property (no docblock generic to map each item against) no longer throws — the raw value is kept as-is, still wrapped into the declared collection type
 - TypeScript generation (`map($dto)->to(TypeScript::class)`) no longer mislabels members of a union-typed property (e.g. `parent: Post | Tag | null`) with the name of whichever class happened to be processed last
+- List properties of built-in types (`array<int>`, `array<string>`, ...) keep their items instead of throwing `NoMapperFoundException`
+- Falsy list items (`0`, `''`, `'0'`, `false`) are kept; only `null` items are dropped
 - A single id mapped to a list-of-models property (`array<User>`, `Collection<int, User>`) resolves to a one-item list, instead of loading every row of the table or returning the model's attributes
+- Mapping to a `Collection` subclass, including Eloquent's `Collection`, returns an instance of that class instead of crashing
 
 ### Security
 
