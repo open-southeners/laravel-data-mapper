@@ -88,10 +88,15 @@ class ModelDataMapper extends DataMapper
 
         $data = $this->resolveIntoModelInstance($data, $mappingValue->objectClass);
 
+        // A single key (e.g. `'2'`) still resolves into one model (or `null`),
+        // but a caller asking for a list gets a list of it rather than the
+        // model itself, whose own `all()`/`toArray()` mean something else.
+        if ($mappingValue->collectClass !== null && ! $data instanceof DatabaseCollection) {
+            $data = (new $mappingValue->objectClass)->newCollection($data ? [$data] : []);
+        }
+
         if ($mappingValue->collectClass === Collection::class) {
-            $data = $data instanceof DatabaseCollection
-                ? $data->toBase()
-                : Collection::make($data);
+            $data = $data->toBase();
         }
 
         if ($mappingValue->collectClass === 'array') {
