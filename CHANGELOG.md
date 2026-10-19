@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MapeableObject` interface renamed to `MappableObject`
 - Package config is now merged automatically (`mergeConfigFrom`), so `config('data-mapper.*')` resolves its defaults without requiring `vendor:publish` first
 - **Breaking:** when mapping an array onto a model, only methods with a declared `Relation` return type (or relations registered with `resolveRelationUsing()`) are treated as relations; keys matching untyped relation methods are filled as attributes
+- `user_id`-style keys now fill a camelCase `$userId` property when one exists, falling back to `$user` as before
 
 ### Fixed
 
@@ -39,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Falsy list items (`0`, `''`, `'0'`, `false`) are kept; only `null` items are dropped
 - A single id mapped to a list-of-models property (`array<User>`, `Collection<int, User>`) resolves to a one-item list, instead of loading every row of the table or returning the model's attributes
 - Mapping to a `Collection` subclass, including Eloquent's `Collection`, returns an instance of that class instead of crashing
+- Public DTO properties that aren't constructor parameters are set after construction instead of failing with `Unknown named parameter`
 
 ### Security
 

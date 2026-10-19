@@ -124,7 +124,23 @@ class ObjectDataMapper extends DataMapper
             };
         }
 
-        return new $mappingValue->objectClass(...$data);
+        // Public properties the constructor doesn't take are set once the
+        // instance exists (readonly ones can only be written from inside the
+        // class, so those are left to the constructor).
+        $constructorParameters = array_map(
+            fn (ReflectionParameter $parameter) => $parameter->getName(),
+            $class->getConstructor()?->getParameters() ?? []
+        );
+
+        $instance = new $mappingValue->objectClass(...Arr::only($data, $constructorParameters));
+
+        foreach (Arr::except($data, $constructorParameters) as $key => $value) {
+            if (! $class->getProperty($key)->isReadOnly()) {
+                $instance->{$key} = $value;
+            }
+        }
+
+        return $instance;
     }
 
     /**
@@ -200,16 +216,22 @@ class ObjectDataMapper extends DataMapper
             return $key;
         }
 
+        // The key as given wins, then its camelCase form (`user_id` => `userId`),
+        // then the same without an `_id` suffix (`user_id` => `user`).
+        $candidates = [$key, Str::camel($key)];
+
         if (Str::endsWith($key, '_id')) {
-            $key = Str::replaceLast('_id', '', $key);
+            $withoutId = Str::replaceLast('_id', '', $key);
+
+            array_push($candidates, $withoutId, Str::camel($withoutId));
         }
 
-        $camelKey = Str::camel($key);
+        foreach ($candidates as $candidate) {
+            if (property_exists($class->getName(), $candidate)) {
+                return $candidate;
+            }
+        }
 
-        return match (true) {
-            property_exists($class->getName(), $key) => $key,
-            property_exists($class->getName(), $camelKey) => $camelKey,
-            default => null
-        };
+        return null;
     }
 }

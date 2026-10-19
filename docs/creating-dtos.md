@@ -133,7 +133,7 @@ For the authenticated user specifically, use `#[Authenticated]` instead (see bel
 
 ## Property name normalisation
 
-Snake_case input keys (`user_id`, `is_published`) are normalised to their camelCase/plain property equivalent (`user`, `isPublished`) automatically — controlled by the `normalise_properties` config option (default `true`). Disable it globally in `config/data-mapper.php`, or force it on for one class regardless of the global config with `#[NormaliseProperties]`:
+Snake_case input keys (`is_published`, `user_id`) are normalised to their camelCase property equivalent (`isPublished`, `userId`) automatically, and an `_id` key also falls back to the property without the suffix (`user_id` fills `user` when there's no `userId`) — controlled by the `normalise_properties` config option (default `true`). Disable it globally in `config/data-mapper.php`, or force it on for one class regardless of the global config with `#[NormaliseProperties]`:
 
 ```php
 use OpenSoutheners\LaravelDataMapper\Attributes\NormaliseProperties;

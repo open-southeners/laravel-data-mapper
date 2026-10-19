@@ -85,6 +85,23 @@ class MappingEdgeCasesTest extends TestCase
         $this->assertInstanceOf(EloquentCollection::class, $result);
         $this->assertSame([1, 2], $result->all());
     }
+
+    public function test_public_property_outside_constructor_is_set_after_construction()
+    {
+        $result = map(['name' => 'n', 'note' => 'set later', 'locked' => 'ignored'])->to(EdgeCaseExtraPropertyDto::class);
+
+        $this->assertSame('n', $result->name);
+        $this->assertSame('set later', $result->note);
+        $this->assertFalse((new \ReflectionProperty($result, 'locked'))->isInitialized($result));
+    }
+
+    public function test_snake_case_id_key_maps_to_camel_case_id_property()
+    {
+        $result = map(['user_id' => 5, 'author_id' => 'x'])->to(EdgeCaseSnakeIdDto::class);
+
+        $this->assertSame(5, $result->userId);
+        $this->assertSame('x', $result->authorId);
+    }
 }
 
 class EdgeCaseScalarListDto
@@ -106,6 +123,26 @@ class EdgeCaseModelListDto
      * @param  Collection<int, User>|null  $members
      */
     public function __construct(public array $users = [], public ?Collection $members = null)
+    {
+        //
+    }
+}
+
+class EdgeCaseExtraPropertyDto
+{
+    public ?string $note = null;
+
+    public readonly string $locked;
+
+    public function __construct(public string $name)
+    {
+        //
+    }
+}
+
+class EdgeCaseSnakeIdDto
+{
+    public function __construct(public ?int $userId = null, public ?string $authorId = null)
     {
         //
     }
