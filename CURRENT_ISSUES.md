@@ -5,11 +5,6 @@
 - **What**: v3 `BindModel` morph resolution (`getMorphModel`, `ModelWith`, `using`) is commented out; `#[ResolveModel]`/`#[ModelWith]` attributes exist but are unwired.
 - **Fix**: Port after mapper-selection refactor lands, implemented against `supports()`/priority semantics. Explicitly deferred this round (known-gaps fix round only covered U1–U7 above).
 
-## Stale v3 `docs/` need a rewrite for v4
-- **Where**: `docs/` (Vitepress site content, still describes `DataTransferObject`, `make:dto`, `dto:typescript`, `BindModel*` attributes removed/renamed in 4.0.0)
-- **What**: Nothing in `docs/` reflects the v4 mapper-registry API (`map()->to()`, `MapperRegistry::register()`, `MappableObject`, `SerializesMapping`, etc). Explicitly deferred this round.
-- **Fix**: Full rewrite once the v4 API surface settles (post morph-resolution port, since that changes `ModelDataMapper` docs too).
-
 ## `SerializesMapping`'s `MappableObject` fallback has no dedicated test
 - **Where**: `src/Concerns/SerializesMapping.php` (`serialiseObject()` — the non-`Stringable`, non-recursive-trait branch that falls back to `get_object_vars()`)
 - **What**: `tests/SerializesMappingTest.php` covers Model/Collection/enum/Carbon/nested-`SerializesMapping` properties, but no fixture exercises a plain `MappableObject` (not `Stringable`, not itself using the trait) as a serialisable property, so the `array_map` fallback branch is untested.
